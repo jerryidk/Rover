@@ -28,4 +28,16 @@ gdb:        ---- To debug
 ```
 Master branch contains ready-to-go production code
 Dev  branch contains development code. 
+
+In order to ensure we always have a copy of working code, Master branch shouldn't be merged until dev branch is thoroughly tested. 
+Normal work flow: 
+
+- git pull origin                            ; sync yourself 
+- git checkout dev                           ; go to developement
+- write some code ...        
+- git add and commit                         ; commit
+- git checkout master                        ; Switch to master branch
+- git merge dev and fix conflicts            ; Sync production (Make sure your code works !) 
+- git push origin master                     ; Production! 
+
 ```
