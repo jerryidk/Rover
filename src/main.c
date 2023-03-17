@@ -1,12 +1,5 @@
 #include "main.h"
 
-
-/**
- * TODO
- *  
- * 
-*/
-
 /**
  * Main program.
  * Default: 8MHz clock
@@ -19,42 +12,6 @@ int main(void)
   // Enable system clock
   SysTick_Config(1000); // 1ms  
   RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-
-  /*
-    Initialize all perepheral
-     1. GPIO   
-     2. Usart
-     3. Timers
-     4. SPI
-     5. I2C
-
-  *  PIN descriptions:
-  *  
-  *      Name               PIN                 
-  *       
-  *      USART_TX                             
-  *      USART_RX 
-  * 
-  *      HCSR1_IN
-  *      HCSR1_OUT
-  * 
-  *      HCSR2_IN
-  *      HCSR2_OUT
-  * 
-  *      HCSR3_IN
-  *      HCSR3_OUT
-  *   
-  *      MOTOR1_RED
-  *      MOTOR1_BLK
-  *      MOTOR1_EN
-  *      HALL_ENC_IN
-  *      SCL
-  *      SDA
-  *      OS
-  *      
-  *     
-  *            
-  */
 
   GPIO_PIN_T pin_usart_tx;
   pin_usart_tx.gpio = GPIOC;
