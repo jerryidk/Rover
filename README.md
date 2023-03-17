@@ -22,3 +22,10 @@ gdb:        ---- To debug
 --- target remote localhost:<PORT> 
 --- symbol-files  main.elf
 ```
+
+## Work ethics
+
+```
+Master branch contains ready-to-go production code
+Dev  branch contains development code. 
+```
