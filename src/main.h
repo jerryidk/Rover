@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "stm32f072xb.h"
 #include "timer.h"
-#include "usart.h"
+#include "usart3.h"
 #include "gpio.h"
 #include "hcsr.h"
 
@@ -24,7 +24,7 @@ uint32_t SystemClkFreq = 8000000; // in HZ.
  * this only set system clock to HSI48, 
  * doesn't config the RCC bus at all. 
 */
-void HSI48_EN(void)
+void hsi48en(void)
 {
   // Flash configuration
   FLASH->ACR |= (FLASH_ACR_LATENCY | FLASH_ACR_PRFTBE);	

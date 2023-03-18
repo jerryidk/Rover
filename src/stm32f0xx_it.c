@@ -2,7 +2,6 @@
 #include "stm32f0xx_it.h"
 
 volatile uint32_t tick = 0; // 1 tick = 1 ms
-
 /**
   * @brief   This function handles NMI exception.
   * @param  None
@@ -57,4 +56,5 @@ void SysTick_Handler(void)
     }
     NVIC_ClearPendingIRQ(SysTick_IRQn);
 }
+
 

@@ -15,7 +15,6 @@
 #include <stdint.h>
 #include "timer.h"
 #include "gpio.h"
-#include "usart.h"
 
 typedef struct hcsr {
     BASIC_TIMER_T* timer; 

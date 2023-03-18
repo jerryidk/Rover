@@ -1,5 +1,6 @@
 #include "hcsr.h"
 
+extern uint32_t SystemClkFreq;
 
 uint8_t HCSR_check(HCSR_T* hcsr){
 

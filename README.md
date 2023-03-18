@@ -41,3 +41,21 @@ Normal work flow:
 - git push origin master                     ; Production! 
 
 ```
+
+## Notes
+
+------- 
+### Remote USART
+
+- [datasheet](https://www.etechnophiles.com/hc-05-pinout-specifications-datasheet/)
+- [connection](https://askubuntu.com/questions/248817/how-to-i-connect-a-raw-serial-terminal-to-a-bluetooth-connection)
+
+Schematic: Select datamode by pull EN low. Rest Pins are self explanatory. 
+Commands to connect (pair the bluetooth first, password 0000 or 1234): 
+
+```
+    sudo rfcomm connect /dev/rfcomm0 <MAC ADDRESS>
+    sudo screen /dev/rfcomm0 9600
+```
+------ 
+
