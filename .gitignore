@@ -3,3 +3,4 @@
 *.elf
 *.bin
 .git/
+Makefile
