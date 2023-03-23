@@ -3,7 +3,6 @@
 
 void Timer_init(BASIC_TIMER_T *timer)
 {
-    RCC->APB1ENR |= RCC_APB1ENR_TIM6EN;
     timer->tim->PSC = timer->psc;
     timer->tim->ARR = timer->arr;
 }
@@ -19,6 +18,7 @@ uint16_t Timer_getCnt(BASIC_TIMER_T *timer)
     // if timer overflow, return 0;
     return (uint16_t)timer->tim->CNT;
 }
+
 void Timer_end(BASIC_TIMER_T *timer)
 {
     timer->tim->CR1 &= ~(TIM_CR1_CEN);

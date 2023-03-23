@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "stm32f072xb.h"
 
-
 typedef struct basic_timer{
     TIM_TypeDef*  tim;
     uint16_t psc; 

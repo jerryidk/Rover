@@ -4,6 +4,7 @@ extern uint32_t SystemClkFreq;
 
 void usart3_init(uint32_t baud)
 {
+  RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
   USART3->BRR = (uint32_t)(SystemClkFreq / baud);
   USART3->CR1 |= USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;
 }
@@ -37,34 +38,21 @@ uint8_t usart3_write_upto(char *buf, char terminator)
 
 }
 
-// TODO
-void usart3_write_num(int32_t num)
+void usart3_write_str(char* str){
+
+  int i=0;
+  while(str[i] != '\0'){
+    usart3_write_byte(str[i]);
+    i++;
+  } 
+    
+}
+
+void usart3_write_num(int16_t num)
 {
-  char buf[32];
-  uint8_t len = 0; 
-
-  if(num == 10)
-    usart3_write("10\r\n", 4);
-
-  uint8_t sign = num >> 31;
-  if(sign == 1){
-    buf[0] = '-';
-    len++;
-  }
-
-  num = (int32_t) abs(num);
-  
-  while(num){
-    buf[len] = num%10 + '0';
-    len++;
-    num = num/10;
-
-  }
-
-  buf[len]   = '\r';
-  buf[len+1] = '\n'; 
-  len += 2;
-  usart3_write(buf, len);
+  char buf[32]; 
+  itoa(num, buf, 10);
+  usart3_write_str(buf); 
 }
 
 char usart3_read_byte() {

@@ -1,5 +1,5 @@
 
-#include "stm32f0xx_it.h"
+#include "interrupts.h"
 
 volatile uint32_t tick = 0; // 1 tick = 1 ms
 /**

@@ -2,21 +2,33 @@
 #define MAIN_H
 
 #include <stdint.h>
-#include "stm32f072xb.h"
+#include "interrupts.h"
 #include "timer.h"
 #include "usart3.h"
 #include "gpio.h"
 #include "hcsr.h"
+#include "gyro.h"
 
+// GPIOC
 #define REDLED (6)
 #define BLUELED (7)
 #define ORANGELED (8)
-#define GREENLED (9)
-#define USART3_TX (10) 
-#define USART3_RX (11)
+#define GREENLED (9)    
 
+
+#define true (1)
+#define false (0)
 
 uint32_t SystemClkFreq = 8000000; // in HZ.
+
+/**
+ *  Initialize USART 3 module
+ *  PC 10 TX
+ *  PC 11 RX
+ *  9600 Baud rate
+*/
+void usart_module_init(); 
+   
 
 /**
  * Basic support. 

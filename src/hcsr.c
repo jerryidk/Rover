@@ -28,9 +28,9 @@ uint16_t HCSR_distance(HCSR_T* hcsr){
     GPIO_PIN_T*    trigger = hcsr->trigger;
 
     // Send trigger signal
-    GPIO_trigger(trigger, ON); 
+    GPIO_trigger(trigger, HIGH); 
     Timer_delay(tim, 15); 
-    GPIO_trigger(trigger, OFF); 
+    GPIO_trigger(trigger, LOW); 
     // wait for echo line to turn on
     while(GPIO_data_in(echo) != 1); 
     // start timer
