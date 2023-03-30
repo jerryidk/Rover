@@ -1,6 +1,10 @@
 #include "hcsr.h"
 
-extern uint32_t SystemClkFreq;
+
+void hcsr_init()
+{
+    
+}
 
 uint8_t HCSR_check(HCSR_T* hcsr){
 
@@ -19,8 +23,8 @@ uint8_t HCSR_check(HCSR_T* hcsr){
     return 1;
 }
 
-
-// return distance in mm
+// return distance in cm
+// use a general timer with input mode to measure this.
 uint16_t HCSR_distance(HCSR_T* hcsr){
 
     BASIC_TIMER_T* tim = hcsr->timer;
@@ -41,5 +45,5 @@ uint16_t HCSR_distance(HCSR_T* hcsr){
     uint16_t t = Timer_getCnt(tim); // in us
     // terminate timer
     Timer_end(tim);
-    return (uint16_t)((t) / 58); // d  = v 340 m/s / t 
+    return (uint16_t)(t / 59); // d  = v 340 m/s * t/2 
 }

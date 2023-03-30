@@ -17,10 +17,11 @@
 #define CS_DISABLE (GPIOC->BSRR |= GPIO_BSRR_BS_0)
 #define R (0x1)
 #define W (0x0)
+
 /**
- * Description:
+ * Pin info:
  *
- * PC0 - CS enable
+ * PC0 -  Enable
  * PB13 - SCK
  * PB14 - MISO
  * PB15 - MOSI

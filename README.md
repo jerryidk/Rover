@@ -59,3 +59,47 @@ Commands to connect (pair the bluetooth first, password 0000 or 1234):
 ```
 ------ 
 
+## Physical Resource allocation 
+
+---- 
+Note, PA14,15 should not be used (debugger). 
+
+| Resource   | Pin  | Mode | Function| 
+| ------     | ---- | ---- | ------- | 
+| usart      | PC10 | AF1  | TX      |
+| usart      | PC11 | AF1  | RX      |
+| gyro       | PC0  | OUT  | EN      | 
+| gyro       | PB13 | AF0  | SCK     |
+| gyro       | PB14 | AF0  | MISO    | 
+| gyro       | PB15 | AF0  | MOSI    |
+| motor1     |      | OUT  | BLK     |
+| motor1     |      | OUT  | RED     | 
+| motor1     | PB10 | AF2  | ENCODER |
+| motor2     |      | OUT  | BLK     |
+| motor2     |      | OUT  | RED     |
+| motor2     | PC6  | AF0  | ENCODER |
+| motor power| PA4  | AF4  | PWM     |
+| hcsr1      | PB   | IN   | ECHO    |  
+| hcsr1      |      | OUT  | TRIGER  |
+| hcsr2      | PB   | IN   | ECHO    |
+| hcsr2      |      | OUT  | TRIGER  |
+| hcsr3      | PB   | IN   | ECHO    |
+| hcsr3      |      | OUT  | TRIGER  |
+---- 
+| Timer | Type    | Frequency   | PIN | Desciption |     
+| ----- | ------- | ----------  | ------ | --------   | 
+| 7     | Basic   |  50HZ (20ns)| N/A | Update angle, speed| 
+| 6     | Basic   |  1MHZ (1us) | N/A | HCSR measure  |
+| 2     | Encoder |  | | Motor1 encoder|
+| 3     | Encoder |  | | Motor2 encoder|
+| 14    | PMW     |  | PA4 | Motor  pwm    |
+---- 
+
+# System events
+
+```
+Time: 
+
+Event: 
+
+```

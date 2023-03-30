@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 /**
  * Main program.
  * Default: 8MHz clock
@@ -8,22 +9,21 @@ int main(void)
 {
   // Enable system clock
   SysTick_Config(1000); 
-
-
   // Usart module
   usart_module_init(); 
   Gyro_init();
-
-  GPIOC->MODER |= GPIO_MODER_MODER6_0;
-
   Gyro_enable();
-  int16_t x;
+  int16_t dps;
+  int16_t o = 0;
+
+  // configure a timer interrupt to update orientation. 
   while (1)
   {
     delay(100);
-    x = Gyro_x();
-    if( x > 1000)
-      GPIOC->ODR ^= GPIO_ODR_6;
+    dps = Gyro_z() * 1000 / 100000;
+    o += dps / 10; 
+    usart3_write_num(o);
+    usart3_write_byte('\n');
   }
 }
 
