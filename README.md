@@ -59,7 +59,7 @@ Commands to connect (pair the bluetooth first, password 0000 or 1234):
 ```
 ------ 
 
-## Physical Resource allocation 
+### Physical Resource allocation 
 
 ---- 
 Note, PA14,15 should not be used (debugger). 
@@ -68,41 +68,57 @@ Note, PA14,15 should not be used (debugger).
 | ------     | ---- | ---- | ------- | 
 | usart      | PC10 | AF1  | TX      |
 | usart      | PC11 | AF1  | RX      |
+
 | gyro       | PC0  | OUT  | EN      | 
 | gyro       | PB13 | AF0  | SCK     |
 | gyro       | PB14 | AF0  | MISO    | 
 | gyro       | PB15 | AF0  | MOSI    |
+
 | motor1     | PA0  | OUT  | BLK     |
 | motor1     | PA1  | OUT  | RED     | 
 | motor1     | PB10 | AF2  | ENCODER |
-| motor2     | PA2  | OUT  | BLK     |
+| motor1     | PB1  | AF0  | PWM     |
+
+| motor2     | PC7  | OUT  | BLK     |
 | motor2     | PA3  | OUT  | RED     |
 | motor2     | PC6  | AF0  | ENCODER |
-| motor power| PA4  | AF4  | PWM     |
+| motor2     | PA2  | AF0  | PWM     |
+
 | hcsr1      | PB3  | IN   | ECHO    |  
 | hcsr1      | PA5  | OUT  | TRIGER  |
+
 | hcsr2      | PB4  | IN   | ECHO    |
 | hcsr2      | PA6  | OUT  | TRIGER  |
+
 | hcsr3      | PB5  | IN   | ECHO    |
 | hcsr3      | PA7  | OUT  | TRIGER  |
 ---- 
 | Timer | Type    | Frequency   | PIN | Desciption |     
 | ----- | ------- | ----------  | ------ | --------   | 
-| 6     | Basic   |  50HZ (20ms)| N/A | Update angle, speed| 
-| 7     | Basic   |  1MHZ (1us) | N/A | HCSR measure  |
+| 7     | Basic   | 1MHZ (1us) | N/A | HCSR measure  |
 | 2     | Encoder | TBD | PB10 | Motor1 encoder|
 | 3     | Encoder | TBD | PC6  | Motor2 encoder|
-| 14    | PMW     | TBD | PA4  | Motor pwm|
+| 14    | PMW     | TBD | PB1  | Motor pwm|
+| 15    | PMW     | TBD | PA2  | Motor pwm|
 ---- 
 
-# System interrupts
+### System interrupts
 
 --- 
-
 | Interrupt | Frequency | Description |
 | --------- | --------- | ----------- |
-| Timer6    | 50HZ | Update angle and speed |
-| Systic    | | update tick counter | 
+| Systick   | 10HZ (100ms) | Update all info| 
 --- 
+
+### System Limitation
+
+---
+
+hcsr sensor effective range: 10cm - 80cm. 
+
+motor speed effective range: 
+
+---
+
 
 

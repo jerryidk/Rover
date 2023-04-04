@@ -1,49 +1,69 @@
 #include "hcsr.h"
 
+uint16_t tmax = 5000; // max time processor should wait. 
 
 void hcsr_init()
 {
-    
+    // Initilize timer 7, freq = 1MHZ
+    TIM7->PSC = (SystemClkFreq / 1000000) - 1;
+
+    // Arr should be t_max. 
+    TIM7->ARR = (uint16_t)tmax;
+    TIM7->CNT = 0;
+
+    // PA 5 - 7 to be OUT
+    GPIOA->MODER |= GPIO_MODER_MODER5_0 |
+                    GPIO_MODER_MODER6_0 |
+                    GPIO_MODER_MODER7_0;
 }
 
-uint8_t HCSR_check(HCSR_T* hcsr){
-
-    if(hcsr->timer->psc != (SystemClkFreq/1000000) - 1) 
-        return 0;
-
-    if(hcsr->timer->arr < 10000) 
-        return 0;
-
-    if(hcsr->echo->mode != MODE_IN)
-        return 0;
+// Note, this function is time senstive, we need to disable interrupts
+uint16_t hcsr_distance(Direction_t dir)
+{
     
-    if(hcsr->trigger->mode != MODE_OUT)
-        return 0;
+    // PIN number
+    uint8_t trigger = 5 + dir; 
+    uint8_t echo = 3 + dir; 
 
-    return 1;
-}
+    uint16_t echo_msk = (1 << echo);
+    __disable_irq();
+    uint16_t t = 0;
 
-// return distance in cm
-// use a general timer with input mode to measure this.
-uint16_t HCSR_distance(HCSR_T* hcsr){
+    // Trigger pin stay high for 15 us
 
-    BASIC_TIMER_T* tim = hcsr->timer;
-    GPIO_PIN_T*    echo = hcsr->echo;
-    GPIO_PIN_T*    trigger = hcsr->trigger;
+    // Turn trigger line high
+    GPIOA->BSRR = 0x1 << trigger;
+    
+    TIM7->CNT = 0;
+    TIM7->CR1 |= TIM_CR1_CEN;
+    while (TIM7->CNT < 15)
+        ;
+    TIM7->CR1 &= ~TIM_CR1_CEN;
 
-    // Send trigger signal
-    GPIO_trigger(trigger, HIGH); 
-    Timer_delay(tim, 15); 
-    GPIO_trigger(trigger, LOW); 
-    // wait for echo line to turn on
-    while(GPIO_data_in(echo) != 1); 
-    // start timer
-    Timer_start(tim);
-    // wait for echo line to turn off
-    while(GPIO_data_in(echo) != 0);
-    // get timer passed  
-    uint16_t t = Timer_getCnt(tim); // in us
-    // terminate timer
-    Timer_end(tim);
-    return (uint16_t)(t / 59); // d  = v 340 m/s * t/2 
+    // Turn trigger line low 
+    GPIOA->BSRR = 0x1 << (trigger + 16);
+
+    // Wait for echo to be high
+    while ((GPIOB->IDR & echo_msk ) == 0)
+        ;
+    
+    TIM7->CNT = 0;
+    TIM7->CR1 |= TIM_CR1_CEN;
+    TIM7->SR  &= ~TIM_SR_UIF; 
+    // Wait for echo to be low or timer overflow
+    // 
+    while ((TIM7->SR & TIM_SR_UIF) != 1 &&
+           (GPIOB->IDR & echo_msk) != 0)
+        ;
+    
+    if (TIM7->SR & TIM_SR_UIF )
+        t = tmax;
+    else
+        t = TIM7->CNT;
+        
+
+    TIM7->CR1 &= ~TIM_CR1_CEN;
+    __enable_irq();
+
+    return t / 59;
 }

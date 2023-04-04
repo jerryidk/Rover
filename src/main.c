@@ -1,48 +1,51 @@
 #include "main.h"
 
+uint32_t SystemClkFreq = 8000000; // in HZ.
+uint8_t update_interval = 20;    // ms
+volatile uint32_t tick = 0;       // 1 tick = 20 ms
+volatile int16_t  dps = 0; 
+volatile int16_t  orientation = 0; // degree
+volatile uint16_t front = 0xFFFF;  // cm
+volatile uint16_t left  = 0xFFFF;   
+volatile uint16_t right = 0xFFFF;
 
-/**
- * Main program.
- * Default: 8MHz clock
- */
+void delay(){
+
+  for(volatile int i=0; i<100000; i++) 
+    __NOP(); 
+}
+
 int main(void)
 {
-  // Enable system clock
-  SysTick_Config(1000); 
-  // Usart module
-  usart_module_init(); 
-  Gyro_init();
-  Gyro_enable();
-  int16_t dps;
-  int16_t o = 0;
+  SysTick_Config(800000); 
 
-  // configure a timer interrupt to update orientation. 
+  rcc_init(); 
+  usart_init(9600);
+  gyro_init();
+  gyro_enable();
+  hcsr_init();
+
+  char c;
+  //usart_write_str("\033[2J");
+  
+  usart_write_str("\033[2J");
   while (1)
   {
-    delay(100);
-    dps = Gyro_z() * 1000 / 100000;
-    o += dps / 10; 
-    usart3_write_num(o);
-    usart3_write_byte('\n');
+
+    delay();
+    usart_write_str("\033[0;0H");
+    usart_printf("tick: %d\r\ndps: %d\r\no:%d\r\nfront:%d\r\n", tick, dps, orientation, front);
   }
 }
 
-void usart_module_init()
+void SysTick_Handler(void)
 {
-  RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-  GPIO_PIN_T pin_usart_tx;
-  pin_usart_tx.gpio = GPIOC;
-  pin_usart_tx.pin = USART3_TX;
-  pin_usart_tx.mode = MODE_AF;
-  pin_usart_tx.af = 1;
-  GPIO_init(&pin_usart_tx);
+    if(tick == 0xFFFFFFFF)
+      tick = 0; 
+    else
+      tick++;
 
-  GPIO_PIN_T pin_usart_rx;
-  pin_usart_rx.gpio = GPIOC;
-  pin_usart_rx.pin = USART3_RX;
-  pin_usart_rx.mode = MODE_AF;
-  pin_usart_rx.af = 1;
-  GPIO_init(&pin_usart_rx);
-
-  usart3_init(9600);
+    dps = gyro_z(); 
+    orientation += dps / 10;
+    front = hcsr_distance(FRONT);
 }

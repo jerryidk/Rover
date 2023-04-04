@@ -1,6 +1,9 @@
+.gitignore
 .vscode/
+.git/
+.cache/
 *.o
 *.elf
 *.bin
-.git/
-Makefile
+*.swp
+*.json
