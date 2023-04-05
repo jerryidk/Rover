@@ -17,7 +17,7 @@ void usart_printf(const char *format, ...);
 void usart_write_byte(char byte); 
 void usart_write(char* buf, uint8_t size);
 uint8_t usart_write_upto(char *buf, char terminator);
-void usart_write_num(int16_t num);
+void usart_write_num(int num);
 void usart_write_str(char* str);
 
 // Read

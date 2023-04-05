@@ -1,17 +1,18 @@
 #include "usart.h"
 
-extern uint32_t SystemClkFreq;
 
 void usart_init(uint32_t baud)
 {
+  RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+  RCC->APB1ENR |= RCC_APB1ENR_USART3EN;
+
   // PC10, PC11 
   GPIOC->MODER |= GPIO_MODER_MODER10_1 | GPIO_MODER_MODER11_1; 
   // AF1, AF1
   GPIOC->AFR[1] |=  (0x1 << GPIO_AFRH_AFSEL10_Pos) |
                     (0x1 << GPIO_AFRH_AFSEL11_Pos);
-
   // USART
-  USART3->BRR = (uint32_t)(SystemClkFreq / baud);
+  USART3->BRR = (uint32_t)(8000000 / baud);
   USART3->CR1 |= USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;
  
 }
@@ -23,7 +24,7 @@ void usart_printf(const char *format, ...) {
         if (*format == '%') {
             switch (*(++format)) {
                 case 'd': {
-                    int arg = va_arg(args, int);
+                    int32_t arg = va_arg(args, int32_t);
                     usart_write_num(arg); 
                     break;
                 }
@@ -83,10 +84,10 @@ void usart_write_str(char* str){
     
 }
 
-void usart_write_num(int16_t num)
+void usart_write_num(int num)
 {
   char buf[32]; 
-  itoa(num, buf, 10);
+  itoa(num, buf, 10); // base 10. 
   usart_write_str(buf); 
 }
 

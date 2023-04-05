@@ -33,20 +33,10 @@
 #ifndef HCSR_H
 #define HCSR_H
 
-#include "type.h"
 #include "stm32f072xb.h"
 
-extern uint32_t SystemClkFreq;
-
-typedef enum 
-{
-    FRONT = 0,
-    LEFT  = 1,
-    RIGHT = 2,
-} Direction_t;
-
 void     hcsr_init();
-// Return distacne in cm. 
-uint16_t hcsr_distance(Direction_t dir);
+// Return distacne in cm, arg indicates which hcsr sensor (0 to 2). 
+uint16_t hcsr_distance(uint8_t offset);
 #endif
 

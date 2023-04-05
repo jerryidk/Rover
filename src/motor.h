@@ -1,39 +1,31 @@
-/**
- *  
- *  Motor Module
- * 
- * PIN:
- * 
- * | motor1     | PA0  | OUT  | BLK     |
- * | motor1     | PA1  | OUT  | RED     | 
- * | motor1     | PB10 | AF2  | ENCODER |
- * | motor1     | PB1  | AF0  | PWM     |
-
- * | motor2     | PC7  | OUT  | BLK     |
- * | motor2     | PA3  | OUT  | RED     |
- * | motor2     | PC6  | AF0  | ENCODER |
- * | motor2     | PA2  | AF0  | PWM     |
- * 
- * TIMER: 
- *
- * | 2     | Encoder | TBD | PB10 | Motor1 encoder|
- * | 3     | Encoder | TBD | PC6  | Motor2 encoder|
- * | 14    | PMW     | TBD | PB1  | Motor pwm|
- * | 15    | PMW     | TBD | PA2  | Motor pwm|
- *  
- *  
-*/
-
 #ifndef MOTOR_H
 #define MOTOR_H
 
 #include <stdint.h>
 #include "stm32f072xb.h"
 
+typedef enum
+{
+    GO_LEFT = 0,
+    GO_RIGHT = 1,
+    GO_FORWARD = 2,
+    GO_BACKWARD = 3,
+} Action_t;
+
+/*
+| motor1     | PC2  | OUT  | RED     |
+| motor1     | PC3  | OUT  | BLK     |
+| motor1     | PC6  | AF0  | ENCODER | TIM3_CH1  |
+| motor1     | PB8  | AF2  | PWM     | TIM16_CH1  |
+
+| motor2     | PC4  | OUT  | RED     |
+| motor2     | PC5  | OUT  | BLK     |
+| motor2     | PB9  | AF2  | PWM | TIM17_CH1  |
+*/
+
 void motor_init();
-void motor1_init();
-void motor2_init();
-void encoder1_init();
-void encoder2_init();
+void motor_left_pwm(uint8_t pwm);
+void motor_right_pwm(uint8_t pwm);
+void motor_drive(uint8_t speed, uint32_t time, Action_t action); // time in ms, speed in duty cycle
 
 #endif

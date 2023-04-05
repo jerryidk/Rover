@@ -2,6 +2,8 @@
 
 void gyro_init()
 {
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN;
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; 
     // PC0 MODE OUT
     GPIOC->MODER |= GPIO_MODER_MODER0_0;
     // PB 13-15 MODE AF 0 ( SPI2 )
@@ -43,7 +45,7 @@ void gyro_enable()
 {
     gyro_send(W, CTRL1, 0x0F);
 }
-
+    
 int16_t gyro_x()
 {
     int16_t H = (int16_t) (gyro_send(R, OUT_X_H, 0x0) << 8);

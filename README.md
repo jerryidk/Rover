@@ -62,63 +62,48 @@ Commands to connect (pair the bluetooth first, password 0000 or 1234):
 ### Physical Resource allocation 
 
 ---- 
-Note, PA14,15 should not be used (debugger). 
+Note, PA13, 14,15 should not be used (debugger). 
+Thanks to Wilson: 
+PA2, PA3
+PA6, PA7
+PB0, PB1 
+can't be used due to linear touch sensor. 
+There are also some other pins can't be used as output,
+so test them before you use them. 
 
 | Resource   | Pin  | Mode | Function| 
 | ------     | ---- | ---- | ------- | 
 | usart      | PC10 | AF1  | TX      |
 | usart      | PC11 | AF1  | RX      |
-
 | gyro       | PC0  | OUT  | EN      | 
 | gyro       | PB13 | AF0  | SCK     |
 | gyro       | PB14 | AF0  | MISO    | 
 | gyro       | PB15 | AF0  | MOSI    |
-
-| motor1     | PA0  | OUT  | BLK     |
-| motor1     | PA1  | OUT  | RED     | 
-| motor1     | PB10 | AF2  | ENCODER |
-| motor1     | PB1  | AF0  | PWM     |
-
-| motor2     | PC7  | OUT  | BLK     |
-| motor2     | PA3  | OUT  | RED     |
-| motor2     | PC6  | AF0  | ENCODER |
-| motor2     | PA2  | AF0  | PWM     |
-
 | hcsr1      | PB3  | IN   | ECHO    |  
-| hcsr1      | PA5  | OUT  | TRIGER  |
-
+| hcsr1      | PA8  | OUT  | TRIGGER  |
 | hcsr2      | PB4  | IN   | ECHO    |
-| hcsr2      | PA6  | OUT  | TRIGER  |
-
+| hcsr2      | PA9  | OUT  | TRIGGER  |
 | hcsr3      | PB5  | IN   | ECHO    |
-| hcsr3      | PA7  | OUT  | TRIGER  |
----- 
-| Timer | Type    | Frequency   | PIN | Desciption |     
-| ----- | ------- | ----------  | ------ | --------   | 
-| 7     | Basic   | 1MHZ (1us) | N/A | HCSR measure  |
-| 2     | Encoder | TBD | PB10 | Motor1 encoder|
-| 3     | Encoder | TBD | PC6  | Motor2 encoder|
-| 14    | PMW     | TBD | PB1  | Motor pwm|
-| 15    | PMW     | TBD | PA2  | Motor pwm|
----- 
+| hcsr3      | PA10  | OUT  | TRIGGER  |
+| motor1     | PC3  | OUT  | RED     |
+| motor1     | PC4  | OUT  | BLK     |
+| motor2     | PC5  | OUT  | RED     |
+| motor2     | PC6  | OUT  | BLK     |
+| motor1     | PA4  | AF4  | PWM | TIM14_CH1  |
+| motor2     | PB8  | AF2  | PWM | TIM16_CH1  |
 
 ### System interrupts
 
 --- 
-| Interrupt | Frequency | Description |
-| --------- | --------- | ----------- |
-| Systick   | 10HZ (100ms) | Update all info| 
+| Interrupt | Description |
+| --------- | ------------|
+| Systick   | read gyro and hcsr | 
+| EXTI      | read encoder | 
 --- 
 
-### System Limitation
+### TODO
 
----
-
-hcsr sensor effective range: 10cm - 80cm. 
-
-motor speed effective range: 
-
----
-
-
-
+- Encoder ( pick a pin and hook up EXTI interrupt to detect # rev wheel have taken )
+- PID system ( write a PID system to travel certain distance)
+- Finish Motor and build software controller. 
+- Build User interface
