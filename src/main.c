@@ -6,6 +6,7 @@ volatile int16_t orientation = 0; // degree
 volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
 volatile uint16_t right = 0xFFFF;
+volatile uint16_t pwm = 30;
 
 // Just a delay loop
 void delay(int t)
@@ -45,15 +46,32 @@ int main(void)
   debug();
 #endif
 
+  //Clear the screen
   usart_write_str("\033[2J");
+  char c; 
   while (1)
   {
-    delay(100000);
-    usart_write_str("\033[0;0H");
-    usart_printf("tick: %d\r\n", tick);
-    usart_printf("dps: %d\r\n", dps);
-    usart_printf("o: %d\r\n", orientation);
-    usart_printf("front: %d\r\n", front);
+      c = usart_read_byte(); 
+
+      switch(c){
+
+        case 'l':
+          motor_left_pwm(pwm);
+          break;
+        case 'r':
+          motor_right_pwm(pwm);
+          break;
+        case '+':
+          pwm++;
+          break;
+        case '-':
+          pwm--; 
+          break;
+        default:
+          break;
+      }
+
+      usart_write_str("driving"); 
   }
 }
 
@@ -91,8 +109,29 @@ void SysTick_Handler(void)
 #endif
 
 #ifdef HCSR
-  front = hcsr_distance(1);
+  front = hcsr_distance(0);
+  left = hcsr_distance(1);
+  right = hcsr_distance(2);
 #endif
 
+#ifdef USART
+
+    // Place cursor at (0,0)
+    usart_write_str("\033[0;0H");
+    usart_printf("tick: %d\r\n"
+                  "pwm: %d\r\n"
+                  "dps: %d\r\n"
+                  "o: %d\r\n"
+                  "front: %d\r\n"
+                  "left: %d\r\n"
+                  "right: %d\r\n", 
+                  tick, 
+                  pwm,
+                  dps, 
+                  orientation, 
+                  front, 
+                  left, 
+                  right);
+#endif
   __enable_irq();
 }

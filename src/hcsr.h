@@ -17,15 +17,6 @@
  *      trigger
  *      echo
  *      GND
- *   
- *  Pin: 
- *   
- * | hcsr1      | PB3  | IN   | ECHO    |  
- * | hcsr1      | PA5  | OUT  | TRIGER  | 
- * | hcsr2      | PB4  | IN   | ECHO    | 
- * | hcsr2      | PA6  | OUT  | TRIGER  | 
- * | hcsr3      | PB5  | IN   | ECHO    |
- * | hcsr3      | PA7  | OUT  | TRIGER  |
  * 
  * 
 */

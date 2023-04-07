@@ -68,8 +68,11 @@ PA2, PA3
 PA6, PA7
 PB0, PB1 
 can't be used due to linear touch sensor. 
+
 There are also some other pins can't be used as output,
 so test them before you use them. 
+
+PA Moder <- render your board dead. 
 
 | Resource   | Pin  | Mode | Function| 
 | ------     | ---- | ---- | ------- | 
@@ -89,7 +92,7 @@ so test them before you use them.
 | motor1     | PC4  | OUT  | BLK     |
 | motor2     | PC5  | OUT  | RED     |
 | motor2     | PC6  | OUT  | BLK     |
-| motor1     | PA4  | AF4  | PWM | TIM14_CH1  |
+| motor2     | PA4  | AF4  | PWM | TIM14_CH1  |
 | motor2     | PB8  | AF2  | PWM | TIM16_CH1  |
 
 ### System interrupts
@@ -103,7 +106,7 @@ so test them before you use them.
 
 ### TODO
 
-- Encoder ( pick a pin and hook up EXTI interrupt to detect # rev wheel have taken )
+- Encoder ( pick a pin and hook up EXTI interrupt to detect # rev wheel have taken ) 
 - PID system ( write a PID system to travel certain distance)
 - Finish Motor and build software controller. 
 - Build User interface

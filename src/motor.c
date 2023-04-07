@@ -60,5 +60,5 @@ void motor_right_pwm(uint8_t pwm)
 
 void motor_drive(uint8_t speed, uint32_t duration, Action_t action)
 {
-    
+
 }

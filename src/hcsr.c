@@ -1,5 +1,5 @@
 #include "hcsr.h"
-uint16_t tmax = 5000; // max time processor should wait.
+uint16_t tmax = 5000; // max time processor should wait on hcsr.
 
 void hcsr_init()
 {

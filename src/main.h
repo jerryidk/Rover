@@ -5,10 +5,10 @@
  *  Use Macro to turn on/off a certain module.
 */
 #define USART
-//#define GYRO
-//#define HCSR
-//#define MOTOR
-#define DEBUG
+#define GYRO
+#define HCSR
+#define MOTOR
+//#define DEBUG
 
 
 #include <stdint.h>
