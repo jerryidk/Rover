@@ -2,23 +2,15 @@
 
 volatile uint32_t tick = 0; // 1 tick = 100 ms
 volatile int16_t dps = 0;
-volatile int16_t orientation = 0; // degree
+volatile int16_t orientation = 0; // degree 
 volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
 volatile uint16_t right = 0xFFFF;
-volatile uint16_t pwm = 30;
+volatile uint16_t pwm = 90;
 
-// Just a delay loop
-void delay(int t)
-{
-  for (volatile int i = 0; i < t; i++)
-    __NOP();
-}
-
-void debug()
-{
-  while(1);
-}
+void info_init(void);
+void debug(void);
+void delay(int t); 
 
 int main(void)
 {
@@ -27,6 +19,7 @@ int main(void)
 
 #ifdef USART
   usart_init(9600);
+  info_init();
 #endif
 
 #ifdef GYRO
@@ -71,7 +64,6 @@ int main(void)
           break;
       }
 
-      usart_write_str("driving"); 
   }
 }
 
@@ -113,10 +105,32 @@ void SysTick_Handler(void)
   left = hcsr_distance(1);
   right = hcsr_distance(2);
 #endif
+  
+  __enable_irq();
+}
 
-#ifdef USART
+/**
+ * Initilize timer 2 to print out info.
+*/
+void info_init(void){
 
-    // Place cursor at (0,0)
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+    NVIC_SetPriority(TIM2_IRQn, 2);
+    NVIC_EnableIRQ(TIM2_IRQn);
+    
+    TIM2->PSC = 40000-1;
+    TIM2->ARR = 200;
+    TIM2->DIER |= TIM_DIER_UIE;
+    TIM2->CR1 = TIM_CR1_CEN;
+}
+
+void TIM2_IRQHandler() 
+{
+    __disable_irq();
+    //clear 
+    usart_write_str("\033[2J");
+    //place cursor at (0,0)  
     usart_write_str("\033[0;0H");
     usart_printf("tick: %d\r\n"
                   "pwm: %d\r\n"
@@ -132,6 +146,18 @@ void SysTick_Handler(void)
                   front, 
                   left, 
                   right);
-#endif
-  __enable_irq();
+    TIM2->SR &= ~TIM_SR_UIF;
+    __enable_irq();
+}
+
+// Just a delay loop
+void delay(int t)
+{
+  for (volatile int i = 0; i < t; i++)
+    __NOP();
+}
+
+void debug()
+{
+  while(1);
 }

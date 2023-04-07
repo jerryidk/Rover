@@ -8,16 +8,20 @@ void motor_init()
     TIM6->ARR = 0xFFFF;
     TIM6->CNT = 0;
 
-    RCC->AHBENR |= RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOAEN;
-    RCC->APB1ENR |= RCC_APB1ENR_TIM14EN | RCC_APB2ENR_TIM16EN;
-    ;
+    motor_left_init();
+    motor_right_init();
+}
 
-    // PC 3 and 4
+void motor_left_init()
+{
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOAEN; 
     GPIOC->MODER |= GPIO_MODER_MODER3_0 |
                     GPIO_MODER_MODER4_0;
 
     GPIOC->ODR |= GPIO_ODR_3;
     GPIOC->ODR &= ~GPIO_ODR_4;
+
+    RCC->APB1ENR |= RCC_APB1ENR_TIM14EN;
 
     // Timer 14, PWM 20khz
     // PA4 AF4
@@ -30,6 +34,18 @@ void motor_init()
     TIM14->ARR = 100;          // PWM at 20kHz
     TIM14->CCR1 = 90;          // Start PWM at 0% duty cycle
     TIM14->CR1 |= TIM_CR1_CEN; // Enable timer
+}
+
+void motor_right_init(){
+
+    RCC->AHBENR |= RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOBEN;
+    RCC->APB2ENR |= RCC_APB2ENR_TIM16EN; 
+
+    // PC 5 and 6 
+    GPIOC->MODER |= GPIO_MODER_MODER5_0 |
+                    GPIO_MODER_MODER6_0;
+    GPIOC->ODR |= GPIO_ODR_5;
+    GPIOC->ODR &= ~GPIO_ODR_6;
 
     // Timer 16, PWM 20khz
     // PB 8 AF2
@@ -40,11 +56,11 @@ void motor_init()
     TIM16->PSC = 3;
     TIM16->ARR = 100;
     TIM16->CCR1 = 50;
-    TIM16->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE; 
-    TIM16->CCER |= TIM_CCER_CC1E;                                          
-    TIM16->BDTR |= TIM_BDTR_MOE;     // Break or Dead .. 
-    TIM16->CR1 |= TIM_CR1_CEN;                                             
-    TIM16->EGR |= TIM_EGR_UG;                                              
+    TIM16->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;
+    TIM16->CCER |= TIM_CCER_CC1E;
+    TIM16->BDTR |= TIM_BDTR_MOE; // Break or Dead ..
+    TIM16->CR1 |= TIM_CR1_CEN;
+    TIM16->EGR |= TIM_EGR_UG;
 }
 
 void motor_left_pwm(uint8_t pwm)
