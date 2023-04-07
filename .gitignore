@@ -1,5 +1,11 @@
+.gitignore
 .vscode/
+.git/
+.cache/
 *.o
 *.elf
 *.bin
-.git/
+*.swp
+*.json
+
+device_headers/

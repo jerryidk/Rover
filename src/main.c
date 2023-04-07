@@ -1,60 +1,163 @@
 #include "main.h"
 
-/**
- * Main program.
- * Default: 8MHz clock
- * 
- *          call HSI48_EN if in needs of 48MHz clock (for lab purpose, you don't need it! ).
- *          consult rcc perepheral for more info.
- */
+volatile uint32_t tick = 0; // 1 tick = 100 ms
+volatile int16_t dps = 0;
+volatile int16_t orientation = 0; // degree 
+volatile uint16_t front = 0xFFFF; // cm
+volatile uint16_t left = 0xFFFF;
+volatile uint16_t right = 0xFFFF;
+volatile uint16_t pwm = 90;
+
+void info_init(void);
+void debug(void);
+void delay(int t); 
+
 int main(void)
-{ 
-  // Enable system clock
-  SysTick_Config(1000); // 1ms  
-  RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+{
+  // Configure Systick to be 100ms, 10HZ
+  SysTick_Config(800000);
 
-  GPIO_PIN_T pin_usart_tx;
-  pin_usart_tx.gpio = GPIOC;
-  pin_usart_tx.pin = USART3_TX;
-  pin_usart_tx.mode = MODE_AF;
-  pin_usart_tx.af = 1;
-  GPIO_init(&pin_usart_tx);
-  usart3_init(9600);
-  usart3_write("usart init... \r\n");
+#ifdef USART
+  usart_init(9600);
+  info_init();
+#endif
 
-  // PIN 0 Input Echo
-  GPIO_PIN_T pin_echo;
-  pin_echo.gpio = GPIOC;
-  pin_echo.pin = 0;
-  pin_echo.mode = MODE_IN;
-  pin_echo.pupd = PULL_DOWN;
-  GPIO_init(&pin_echo);
+#ifdef GYRO
+  gyro_init();
+  gyro_enable();
+#endif
 
-  // PIN 1 Output Trigger
-  GPIO_PIN_T pin_trigger;
-  pin_trigger.gpio = GPIOC;
-  pin_trigger.pin = 6;
-  pin_trigger.mode = MODE_OUT;
-  pin_trigger.ospeed = 1;
-  pin_trigger.pupd = PULL_DOWN; 
-  GPIO_init(&pin_trigger); 
+#ifdef HCSR
+  hcsr_init();
+#endif
 
-  BASIC_TIMER_T timer6;
-  timer6.tim = TIM6;
-  timer6.psc = 8 - 1;
-  timer6.arr = UINT16_MAX;
-  Timer_init(&timer6);
+#ifdef MOTOR
+  motor_init();
+#endif
 
-  HCSR_T hscr;
-  hscr.echo = &pin_echo;
-  hscr.trigger = &pin_trigger;
-  hscr.timer = &timer6;
-  if(!HCSR_check(&hscr))
-    usart3_write("!! ERROR: init hcsr\n"); 
+#ifdef DEBUG
+  debug();
+#endif
 
-   // Never returns 
-  while(1){
-    usart3_write_num(HCSR_distance(&hscr));
-    delay(1000);
-  } 
+  //Clear the screen
+  usart_write_str("\033[2J");
+  char c; 
+  while (1)
+  {
+      c = usart_read_byte(); 
+
+      switch(c){
+
+        case 'l':
+          motor_left_pwm(pwm);
+          break;
+        case 'r':
+          motor_right_pwm(pwm);
+          break;
+        case '+':
+          pwm++;
+          break;
+        case '-':
+          pwm--; 
+          break;
+        default:
+          break;
+      }
+
+  }
+}
+
+/**
+ * TODO: Write PI controller to run the rover in given distance
+ *
+ * target_distance.
+ */
+void PI_control()
+{
+}
+
+/*
+ * System tick happens every 100ms, it will update data from all sensors.
+ *
+ * Note: this interrupt should be atomic, where it shouldn't be interrupt away
+ * by other interrupts.
+ *
+ * Processing this interrupt could take upto 15 - 20ms, which is < 100ms.
+ * So it should never overlap itself.
+ *
+ */
+void SysTick_Handler(void)
+{
+  __disable_irq();
+
+  if (tick == 0xFFFFFFFF)
+    tick = 0;
+  else
+    tick++;
+
+#ifdef GYRO
+  dps = gyro_z();
+  orientation += dps / 10;
+#endif
+
+#ifdef HCSR
+  front = hcsr_distance(0);
+  left = hcsr_distance(1);
+  right = hcsr_distance(2);
+#endif
+  
+  __enable_irq();
+}
+
+/**
+ * Initilize timer 2 to print out info.
+*/
+void info_init(void){
+
+    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+    NVIC_SetPriority(TIM2_IRQn, 2);
+    NVIC_EnableIRQ(TIM2_IRQn);
+    
+    TIM2->PSC = 40000-1;
+    TIM2->ARR = 200;
+    TIM2->DIER |= TIM_DIER_UIE;
+    TIM2->CR1 = TIM_CR1_CEN;
+}
+
+void TIM2_IRQHandler() 
+{
+    __disable_irq();
+    //clear 
+    usart_write_str("\033[2J");
+    //place cursor at (0,0)  
+    usart_write_str("\033[0;0H");
+    usart_printf("tick: %d\r\n"
+                  "pwm: %d\r\n"
+                  "dps: %d\r\n"
+                  "o: %d\r\n"
+                  "front: %d\r\n"
+                  "left: %d\r\n"
+                  "right: %d\r\n", 
+                  tick, 
+                  pwm,
+                  dps, 
+                  orientation, 
+                  front, 
+                  left, 
+                  right);
+    TIM2->SR &= ~TIM_SR_UIF;
+    __enable_irq();
+}
+
+// Just a delay loop
+void delay(int t)
+{
+  for (volatile int i = 0; i < t; i++)
+    __NOP();
+}
+
+void debug()
+{
+  while(1);
 }
