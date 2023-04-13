@@ -66,15 +66,63 @@ void motor_right_init(){
 void motor_left_pwm(uint8_t pwm)
 {
     if (pwm <= 100)
-        TIM14->CCR1 = pwm;
+        TIM14->CCR1 = ((uint32_t)pwm*TIM14->ARR)/100;
 }
 void motor_right_pwm(uint8_t pwm)
 {
     if (pwm <= 100)
-        TIM16->CCR1 = pwm;
+        TIM16->CCR1 = ((uint32_t)pwm*TIM16->ARR)/100;
 }
 
+/* 
+ * Interface from keyboard commands to motor control
+ * speed    - duty cycle
+ * duration - ms
+*/
 void motor_drive(uint8_t speed, uint32_t duration, Action_t action)
+{
+    // TODO: duration. not sure what to do with this.
+
+    // TODO: how to use speed & pwm to go forward or backward
+    // TODO: make some things going to PI_control a volatile global, to save room on the stack during function calls.
+    //          Maybe make a whole file for all our volaile "globals".
+    uint8_t pwm;
+    switch (action)
+    {
+        case GO_LEFT:
+            pwm = (speed << 1); // divide by 2
+            motor_left_pwm(pwm); // forward
+            motor_right_pwm(pwm); // backward
+            break;
+
+        case GO_RIGHT:
+            pwm = (speed << 1); // divide by 2
+            motor_right_pwm(pwm); // forward
+            motor_left_pwm(pwm); // backward
+            break;
+
+        case GO_FORWARD:
+            motor_right_pwm(pwm);
+            motor_left_pwm(pwm);
+            break;
+
+        case GO_BACKWARD:
+            // invert pwm so direction is backward
+            motor_right_pwm(pwm);
+            motor_left_pwm(pwm);
+            break;
+
+        default :
+            break;
+    }
+}
+
+/**
+ * TODO: Write PI controller to run the rover in given distance
+ *
+ * target_distance.
+ */
+void PI_control(int8_t target_speed)
 {
 
 }

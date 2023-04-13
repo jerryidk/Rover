@@ -7,6 +7,7 @@ volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
 volatile uint16_t right = 0xFFFF;
 volatile uint16_t pwm = 90;
+volatile int8_t speed = 0;
 
 void info_init(void);
 void debug(void);
@@ -41,39 +42,58 @@ int main(void)
 
   //Clear the screen
   usart_write_str("\033[2J");
-  char c; 
+  char c;
   while (1)
   {
       c = usart_read_byte(); 
 
       switch(c){
-
+        
         case 'l':
-          motor_left_pwm(pwm);
+          action = GO_LEFT;
+          // motor_left_pwm(pwm);
           break;
         case 'r':
-          motor_right_pwm(pwm);
+          action = GO_RIGHT;
+          // motor_right_pwm(pwm);
           break;
+        case 'u':
+          action = GO_FORWARD;
+          break;
+        case 'd':
+          action = GO_BACKWARD;
+          break;
+
+        case '1': // intentional fall through
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '0':
+          duration = str2num(c); // probably won't work
+          break;
+        
         case '+':
-          pwm++;
+          // pwm++;
+          speed++;
           break;
         case '-':
-          pwm--; 
+          // pwm--;
+          speed--;
           break;
+        
+        case '':
         default:
           break;
       }
+      
+      motor_drive(speed, duration, action);
 
   }
-}
-
-/**
- * TODO: Write PI controller to run the rover in given distance
- *
- * target_distance.
- */
-void PI_control()
-{
 }
 
 /*
