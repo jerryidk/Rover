@@ -6,8 +6,7 @@ volatile int16_t orientation = 0; // degree
 volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
 volatile uint16_t right = 0xFFFF;
-volatile uint16_t pwm = 90;
-volatile int8_t speed = 0;
+volatile uint8_t pwm = 90;
 
 void info_init(void);
 void debug(void);
@@ -43,6 +42,13 @@ int main(void)
   //Clear the screen
   usart_write_str("\033[2J");
   char c;
+
+  // default motor actions
+  bool execute_motor_instructions = false;
+  Action_t action = GO_FORWARD;
+  uint32_t duration = 0;
+  uint8_t pwm_step = 10;
+
   while (1)
   {
       c = usart_read_byte(); 
@@ -51,17 +57,19 @@ int main(void)
         
         case 'l':
           action = GO_LEFT;
-          // motor_left_pwm(pwm);
+          execute_motor_instructions = true;
           break;
         case 'r':
           action = GO_RIGHT;
-          // motor_right_pwm(pwm);
+          execute_motor_instructions = true;
           break;
         case 'u':
           action = GO_FORWARD;
+          execute_motor_instructions = true;
           break;
         case 'd':
           action = GO_BACKWARD;
+          execute_motor_instructions = true;
           break;
 
         case '1': // intentional fall through
@@ -74,16 +82,14 @@ int main(void)
         case '8':
         case '9':
         case '0':
-          duration = str2num(c); // probably won't work
+          duration = (uint32_t)atoi(c); // atoi converts string to integer
           break;
         
         case '+':
-          // pwm++;
-          speed++;
+          pwm = pwm + pwm_step;
           break;
         case '-':
-          // pwm--;
-          speed--;
+          pwm = pwm - pwm_step;
           break;
         
         case '':
@@ -91,7 +97,11 @@ int main(void)
           break;
       }
       
-      motor_drive(speed, duration, action);
+      if (execute_motor_instructions == true)
+      {
+        motor_drive(pwm, duration, action);
+        execute_motor_instructions = false;
+      }
 
   }
 }
