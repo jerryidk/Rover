@@ -17,17 +17,16 @@ OS = $(TOOLCHAIN)/bin/arm-none-eabi-size
 ASFLAGS = -c -O0 -mcpu=$(MCU_SPEC) -mthumb -Wall -fmessage-length=0
 
 # C compilation directives
-CFLAGS = -mcpu=$(MCU_SPEC) -mthumb -Wall -g -fmessage-length=0 --specs=nosys.specs
+CFLAGS  = -mcpu=$(MCU_SPEC) -mthumb -Wall -g -fmessage-length=0 --specs=nosys.specs
 
 # Linker directives
 LSCRIPT = ./ld/$(LD_SCRIPT)
-LFLAGS += -mcpu=$(MCU_SPEC) -mthumb -Wall --specs=nosys.specs -nostdlib -lgcc -T$(LSCRIPT)
+LFLAGS  = -mcpu=$(MCU_SPEC) -mthumb -Wall --specs=nosys.specs -nostdlib -lgcc -T$(LSCRIPT)
 
 AS_SRC   = ./src/boot.s
 C_SRC    =  $(wildcard ./src/*.c)
 INCLUDE  =  -I./ -I./device_headers
-OBJS  = $(AS_SRC:.s=.o)
-OBJS += $(C_SRC:.c=.o)
+OBJS     = $(AS_SRC:.s=.o) $(C_SRC:.c=.o)
 
 .PHONY: all clean 
 
@@ -45,7 +44,6 @@ $(TARGET).elf: $(OBJS)
 $(TARGET).bin: $(TARGET).elf
 	$(OC) -S -O binary $< $@
 	$(OS) $<
-
 
 flash: $(TARGET).bin
 	st-flash write $(TARGET).bin 0x8000000

@@ -41,7 +41,76 @@ Normal work flow:
 - git push origin master                     ; Production! 
 
 ```
-MOTOR DIRECTION
+## Notes
+
+------- 
+### Remote USART
+
+- [datasheet](https://www.etechnophiles.com/hc-05-pinout-specifications-datasheet/)
+- [connection](https://askubuntu.com/questions/248817/how-to-i-connect-a-raw-serial-terminal-to-a-bluetooth-connection)
+
+Schematic: Select datamode by pull EN low. Rest Pins are self explanatory. 
+Commands to connect (pair the bluetooth first, password 0000 or 1234): 
+
+```
+    sudo rfcomm connect /dev/rfcomm0 <MAC ADDRESS>
+    sudo screen /dev/rfcomm0 9600
+```
+------ 
+
+### Physical Resource allocation 
+
+---- 
+Note, PA13, 14,15 should not be used (debugger). 
+Thanks to Wilson: 
+PA2, PA3
+PA6, PA7
+PB0, PB1 
+can't be used due to linear touch sensor. 
+
+There are also some other pins can't be used as output,
+so test them before you use them. 
+
+PA Moder <- render your board dead. 
+
+| Resource   | Pin  | Mode | Function| 
+| ------     | ---- | ---- | ------- | 
+| usart      | PC10 | AF1  | TX      |
+| usart      | PC11 | AF1  | RX      |
+| gyro       | PC0  | OUT  | EN      | 
+| gyro       | PB13 | AF0  | SCK     |
+| gyro       | PB14 | AF0  | MISO    | 
+| gyro       | PB15 | AF0  | MOSI    |
+| hcsr1      | PB3  | IN   | ECHO    |  
+| hcsr1      | PA8  | OUT  | TRIGGER  |
+| hcsr2      | PB4  | IN   | ECHO    |
+| hcsr2      | PA9  | OUT  | TRIGGER  |
+| hcsr3      | PB5  | IN   | ECHO    |
+| hcsr3      | PA10  | OUT  | TRIGGER  |
+| motor1     | PC3  | OUT  | RED     |
+| motor1     | PC4  | OUT  | BLK     |
+| motor2     | PC5  | OUT  | RED     |
+| motor2     | PC6  | OUT  | BLK     |
+| motor2     | PA4  | AF4  | PWM | TIM14_CH1  |
+| motor2     | PB8  | AF2  | PWM | TIM16_CH1  |
+
+### System interrupts
+
+--- 
+| Interrupt | Description |
+| --------- | ------------|
+| Systick   | read gyro and hcsr | 
+| EXTI      | read encoder | 
+--- 
+
+### TODO
+
+- Encoder ( pick a pin and hook up EXTI interrupt to detect # rev wheel have taken ) 
+- PID system ( write a PID system to travel certain distance)
+- Finish Motor and build software controller. 
+- Build User interface
+
+### MOTOR DIRECTION
 
 The following is the source of true to control the direction of the Rover.
 Once we have got the information from the ultrasonic sensor it is necessary to apply a threshold to get the data for the source of true.
