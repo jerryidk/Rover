@@ -6,7 +6,7 @@
 */
 #define USART
 #define GYRO
-//#define HCSR
+#define HCSR
 #define MOTOR
 //#define DEBUG
 

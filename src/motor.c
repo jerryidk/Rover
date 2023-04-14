@@ -32,7 +32,7 @@ void motor_left_init()
     TIM14->CCER |= TIM_CCER_CC1E; // Enable capture-compare channel 1
     TIM14->PSC = 3;
     TIM14->ARR = 100;          // PWM at 20kHz
-    TIM14->CCR1 = 90;          // Start PWM at 0% duty cycle
+    TIM14->CCR1 = 100;          // Start PWM at 0% duty cycle
     TIM14->CR1 |= TIM_CR1_CEN; // Enable timer
 }
 
@@ -55,7 +55,7 @@ void motor_right_init(){
 
     TIM16->PSC = 3;
     TIM16->ARR = 100;
-    TIM16->CCR1 = 50;
+    TIM16->CCR1 = 100;
     TIM16->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;
     TIM16->CCER |= TIM_CCER_CC1E;
     TIM16->BDTR |= TIM_BDTR_MOE; // Break or Dead ..
