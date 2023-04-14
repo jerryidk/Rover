@@ -41,7 +41,6 @@ Normal work flow:
 - git push origin master                     ; Production! 
 
 ```
-
 ## Notes
 
 ------- 
@@ -110,3 +109,19 @@ PA Moder <- render your board dead.
 - PID system ( write a PID system to travel certain distance)
 - Finish Motor and build software controller. 
 - Build User interface
+
+### MOTOR DIRECTION
+
+The following is the source of true to control the direction of the Rover.
+Once we have got the information from the ultrasonic sensor it is necessary to apply a threshold to get the data for the source of true.
+The threshold should be define somewhere in between 10 cm (~4 in) to 20 cm (~8 in). Once the threshold is apply we should check a variable 'rover_direction'
+
+L 	F 	R
+0	0	0	--> Move Fw
+0	0	1	--> Move Fw
+0	1	0	--> Turn R 90 degrees
+0	1	1	--> Turn L 90 degrees
+1	0	0	--> Move Fw
+1	0	1	--> Move Fw
+1	1	0	--> Turn R 90 degrees
+1	1	1	--> Turn R 180 degrees
