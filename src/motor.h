@@ -21,25 +21,10 @@ typedef enum
 void motor_init();
 void motor_left_init();
 void motor_right_init();
-void motor_left_pwm(uint8_t pwm);
-void motor_right_pwm(uint8_t pwm);
-void motor_drive(uint8_t speed, uint32_t duration, Action_t action);
+void motor_left_pwm(uint8_t, MOTOR_ROT_DIRECTION_t);
+void motor_right_pwm(uint8_t, MOTOR_ROT_DIRECTION_t);
+void motor_drive(uint8_t, uint32_t, Action_t);
 void PI_control(void);
 
-
-
-// Just a delay loop
-extern volatile uint32_t tick;
-void delay_ms(int t);
-{
-  int start = tick;
-  while (tick - start < t)
-  {
-    if (tick > start && (tick - start >= t))
-      break;
-    if (tick < start && (start - tick >= t))
-      break;
-  }
-}
 
 #endif

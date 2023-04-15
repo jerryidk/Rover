@@ -32,7 +32,7 @@ void motor_left_init()
     TIM14->CCER |= TIM_CCER_CC1E; // Enable capture-compare channel 1
     TIM14->PSC = 3;
     TIM14->ARR = 100;          // PWM at 20kHz
-    TIM14->CCR1 = 90;          // Start PWM at 0% duty cycle
+    TIM14->CCR1 = 50;          // pwm
     TIM14->CR1 |= TIM_CR1_CEN; // Enable timer
 }
 
@@ -65,12 +65,12 @@ void motor_right_init(){
 
 void motor_left_pwm(uint8_t pwm, MOTOR_ROT_DIRECTION_t direction)
 {
-    if (direction == ROT_FORWARD)
+    if (direction == ROT_BACKWARD)
     {
         GPIOC->ODR |= GPIO_ODR_3;
         GPIOC->ODR &= ~GPIO_ODR_4;
     }
-    else if (direction == ROT_BACKWARD)
+    else if (direction == ROT_FORWARD)
     {
         GPIOC->ODR &= ~GPIO_ODR_3;
         GPIOC->ODR |= GPIO_ODR_4;
@@ -79,14 +79,15 @@ void motor_left_pwm(uint8_t pwm, MOTOR_ROT_DIRECTION_t direction)
     if (pwm <= 100)
         TIM14->CCR1 = ((uint32_t)pwm*TIM14->ARR)/100;
 }
+
 void motor_right_pwm(uint8_t pwm, MOTOR_ROT_DIRECTION_t direction)
 {
-    if (direction == ROT_FORWARD)
+    if (direction == ROT_BACKWARD)
     {
         GPIOC->ODR |= GPIO_ODR_5;
         GPIOC->ODR &= ~GPIO_ODR_6;
     }
-    else if (direction == ROT_BACKWARD)
+    else if (direction == ROT_FORWARD)
     {
         GPIOC->ODR &= ~GPIO_ODR_5;
         GPIOC->ODR |= GPIO_ODR_6;
@@ -101,61 +102,46 @@ void motor_right_pwm(uint8_t pwm, MOTOR_ROT_DIRECTION_t direction)
  * speed    - duty cycle
  * duration - ms
 */
-void motor_drive(uint8_t speed, uint32_t duration, Action_t action)
+void motor_drive(uint8_t pwm, uint32_t duration, Action_t action)
 {
-    MOTOR_ROT_DIRECTION_t left_dir;
-    MOTOR_ROT_DIRECTION_t right_dir;
-    uint8_t pwm;
+    MOTOR_ROT_DIRECTION_t left_motor_rot_dir;
+    MOTOR_ROT_DIRECTION_t right_motor_rot_dir;
     switch (action)
     {
         case GO_LEFT:
-            pwm = (speed << 1); // divide by 2
-            left_dir = ROT_FORWARD;
-            right_dir = ROT_BACKWARD;
+            left_motor_rot_dir = ROT_BACKWARD;
+            right_motor_rot_dir = ROT_FORWARD;
             break;
 
         case GO_RIGHT:
-            pwm = (speed << 1); // divide by 2
-            left_dir = ROT_BACKWARD;
-            right_dir = ROT_FORWARD;
+            left_motor_rot_dir = ROT_FORWARD;
+            right_motor_rot_dir = ROT_BACKWARD;
             break;
 
         case GO_FORWARD:
-            pwm = speed;
-            left_dir = ROT_FORWARD;
-            right_dir = ROT_FORWARD;
+            left_motor_rot_dir = ROT_FORWARD;
+            right_motor_rot_dir = ROT_FORWARD;
             break;
 
         case GO_BACKWARD:
-            pwm = speed;
-            left_dir = ROT_BACKWARD;
-            right_dir = ROT_BACKWARD;
+            left_motor_rot_dir = ROT_BACKWARD;
+            right_motor_rot_dir = ROT_BACKWARD;
             break;
-
         default :
             break;
     }
 
-    motor_right_pwm(pwm, right_dir);
-    motor_left_pwm(pwm, left_dir);
-    uint32_t cnt = duration;
-    while(cnt > 0)
-    {
-        delay_ms(1);
-        cnt--;
-    }
+    // Run 
+    motor_right_pwm(pwm, right_motor_rot_dir);
+    motor_left_pwm(pwm, left_motor_rot_dir);
+
+    TIM6->CNT = 0;
+    TIM6->CR1 |= TIM_CR1_CEN;
+    // wait for duration ms
+    while(TIM6->CNT < duration);
     
+
     // turn off
-    motor_right_pwm(0, right_dir);
-    motor_left_pwm(0, left_dir);
-}
-
-/**
- * TODO: Write PI controller to run the rover in given distance
- *
- * target_distance.
- */
-void PI_control(int8_t target_speed)
-{
-
+    motor_right_pwm(0, ROT_FORWARD);
+    motor_left_pwm(0, ROT_FORWARD);
 }
