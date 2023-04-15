@@ -13,8 +13,7 @@ void hcsr_init()
     // Arr should be t_max.
     TIM7->ARR = (uint16_t)tmax;
     TIM7->CNT = 0;
-
-    // PB 8 - 10 to be OUT
+    
     GPIOA->MODER |= GPIO_MODER_MODER8_0 |
                     GPIO_MODER_MODER9_0 |
                     GPIO_MODER_MODER10_0;

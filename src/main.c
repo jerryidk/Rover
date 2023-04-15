@@ -2,15 +2,18 @@
 
 volatile uint32_t tick = 0; // 1 tick = 100 ms
 volatile int16_t dps = 0;
-volatile int16_t orientation = 0; // degree 
+volatile int16_t orientation = 0; // degree
 volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
 volatile uint16_t right = 0xFFFF;
-volatile uint16_t pwm = 90;
+volatile uint8_t pwm = 95;
+volatile uint32_t duration = 600;
+volatile uint8_t p_step = 1;
+volatile uint8_t d_step = 100;
 
 void info_init(void);
 void debug(void);
-void delay(int t); 
+void delay(int t);
 
 int main(void)
 {
@@ -39,41 +42,58 @@ int main(void)
   debug();
 #endif
 
-  //Clear the screen
+  // Clear the screen
   usart_write_str("\033[2J");
-  char c; 
+  char c;
+
+  // default motor actions
+  bool execute_motor_instructions = false;
+  Action_t action = GO_FORWARD;
+
   while (1)
   {
-      c = usart_read_byte(); 
+    c = usart_read_byte();
+    usart_write_byte(c);
+    switch (c)
+    {
+    case 'a':
+      action = GO_LEFT;
+      execute_motor_instructions = true;
+      break;
+    case 'd':
+      action = GO_RIGHT;
+      execute_motor_instructions = true;
+      break;
+    case 'w':
+      action = GO_FORWARD;
+      execute_motor_instructions = true;
+      break;
+    case 's':
+      action = GO_BACKWARD;
+      execute_motor_instructions = true;
+      break;
+    case 'l':
+      duration += d_step;
+      break;
+    case 'k':
+      duration -= d_step;
+      break;
+    case 'h':
+      pwm += p_step;
+      break;
+    case 'j':
+      pwm -= p_step;
+      break;
+    default:
+      break;
+    }
 
-      switch(c){
-
-        case 'l':
-          motor_left_pwm(pwm);
-          break;
-        case 'r':
-          motor_right_pwm(pwm);
-          break;
-        case '+':
-          pwm++;
-          break;
-        case '-':
-          pwm--; 
-          break;
-        default:
-          break;
-      }
-
+    if (execute_motor_instructions == true)
+    {
+      motor_drive(pwm, duration, action);
+      execute_motor_instructions = false;
+    }
   }
-}
-
-/**
- * TODO: Write PI controller to run the rover in given distance
- *
- * target_distance.
- */
-void PI_control()
-{
 }
 
 /*
@@ -101,53 +121,56 @@ void SysTick_Handler(void)
 #endif
 
 #ifdef HCSR
-  front = hcsr_distance(0);
-  left = hcsr_distance(1);
+  left = hcsr_distance(0);
+  front = hcsr_distance(1);
   right = hcsr_distance(2);
 #endif
-  
+
   __enable_irq();
 }
 
 /**
  * Initilize timer 2 to print out info.
-*/
-void info_init(void){
+ */
+void info_init(void)
+{
 
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 
-    NVIC_SetPriority(TIM2_IRQn, 2);
-    NVIC_EnableIRQ(TIM2_IRQn);
-    
-    TIM2->PSC = 40000-1;
-    TIM2->ARR = 200;
-    TIM2->DIER |= TIM_DIER_UIE;
-    TIM2->CR1 = TIM_CR1_CEN;
+  NVIC_SetPriority(TIM2_IRQn, 2);
+  NVIC_EnableIRQ(TIM2_IRQn);
+
+  TIM2->PSC = 4000 - 1;
+  TIM2->ARR = 2000;
+  TIM2->DIER |= TIM_DIER_UIE;
+  TIM2->CR1 = TIM_CR1_CEN;
 }
 
-void TIM2_IRQHandler() 
+void TIM2_IRQHandler()
 {
-    __disable_irq();
-    //clear 
-    usart_write_str("\033[2J");
-    //place cursor at (0,0)  
-    usart_write_str("\033[0;0H");
-    usart_printf("tick: %d\r\n"
-                  "pwm: %d\r\n"
-                  "dps: %d\r\n"
-                  "o: %d\r\n"
-                  "front: %d\r\n"
-                  "left: %d\r\n"
-                  "right: %d\r\n", 
-                  tick, 
-                  pwm,
-                  dps, 
-                  orientation, 
-                  front, 
-                  left, 
-                  right);
-    TIM2->SR &= ~TIM_SR_UIF;
-    __enable_irq();
+  __disable_irq();
+  // clear
+  usart_write_str("\033[2J");
+  // place cursor at (0,0)
+  usart_write_str("\033[0;0H");
+  usart_printf("tick: %d\r\n"
+               "pwm: %d\r\n"
+               "duration: %d\r\n"
+               "dps: %d\r\n"
+               "o: %d\r\n"
+               "front: %d\r\n"
+               "left: %d\r\n"
+               "right: %d\r\n",
+               tick,
+               pwm,
+               duration,
+               dps,
+               orientation,
+               front,
+               left,
+               right);
+  TIM2->SR &= ~TIM_SR_UIF;
+  __enable_irq();
 }
 
 // Just a delay loop
@@ -159,5 +182,6 @@ void delay(int t)
 
 void debug()
 {
-  while(1);
+  while (1)
+    ;
 }

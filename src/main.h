@@ -6,14 +6,16 @@
 */
 #define USART
 #define GYRO
-//#define HCSR
+#define HCSR
 #define MOTOR
 //#define DEBUG
 
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "stm32f072xb.h"
+
 
 #ifdef USART
 #include "usart.h"
