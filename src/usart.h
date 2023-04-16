@@ -10,7 +10,11 @@
 #include "stm32f072xb.h"
 
 
-void usart_init(uint32_t baud);
+uint8_t data_ready(void);
+char read_byte(void); 
+void dump_info();
+
+void usart_init();
 void usart_printf(const char *format, ...);
 
 // Write 

@@ -5,7 +5,7 @@ void motor_init()
     // Config a basic timer to measure time in ms
     RCC->APB1ENR |= RCC_APB1ENR_TIM6EN;
     TIM6->PSC = 8000 - 1;
-    TIM6->ARR = 0xFFFF;
+    TIM6->ARR = 5000; 
     TIM6->CNT = 0;
 
     motor_left_init();
@@ -137,10 +137,16 @@ void motor_drive(uint8_t pwm, uint32_t duration, Action_t action)
 
     TIM6->CNT = 0;
     TIM6->CR1 |= TIM_CR1_CEN;
+    TIM6->SR &= ~TIM_SR_UIF;
     // wait for duration ms
-    while(TIM6->CNT < duration);
-    
+    while(1) {
+        if(TIM6->SR & TIM_SR_UIF)
+            break;
 
+        if(TIM6->CNT >=duration )
+            break;
+    }
+    
     // turn off
     motor_right_pwm(0, ROT_FORWARD);
     motor_left_pwm(0, ROT_FORWARD);

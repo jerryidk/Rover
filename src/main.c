@@ -5,15 +5,25 @@ volatile int16_t dps = 0;
 volatile int16_t orientation = 0; // degree
 volatile uint16_t front = 0xFFFF; // cm
 volatile uint16_t left = 0xFFFF;
-volatile uint16_t right = 0xFFFF;
+volatile uint16_t right = 0xFFFF; 
 volatile uint8_t pwm = 95;
-volatile uint32_t duration = 600;
+volatile uint32_t duration = 200; // ms
 volatile uint8_t p_step = 1;
 volatile uint8_t d_step = 100;
 
-void info_init(void);
+typedef struct cmd
+{
+  bool execute_motor_instructions;
+  Action_t action;
+} CMD_t;
+
+void timer2_init(void);
 void debug(void);
 void delay(int t);
+void reset();
+void print_sysinfo();
+void parse(char, CMD_t *);
+void update_sensor();
 
 int main(void)
 {
@@ -21,8 +31,7 @@ int main(void)
   SysTick_Config(800000);
 
 #ifdef USART
-  usart_init(9600);
-  info_init();
+  usart_init();
 #endif
 
 #ifdef GYRO
@@ -43,56 +52,74 @@ int main(void)
 #endif
 
   // Clear the screen
-  usart_write_str("\033[2J");
+  usart_write_str(
+      "\033[2J"
+      "\033[0;0H"
+      "Hello world! \r\n ");
   char c;
 
-  // default motor actions
-  bool execute_motor_instructions = false;
-  Action_t action = GO_FORWARD;
+  CMD_t cmd;
+  cmd.action = GO_FORWARD;
+  cmd.execute_motor_instructions = false;
 
   while (1)
   {
-    c = usart_read_byte();
-    usart_write_byte(c);
-    switch (c)
+    if (data_ready() > 0)
     {
-    case 'a':
-      action = GO_LEFT;
-      execute_motor_instructions = true;
-      break;
-    case 'd':
-      action = GO_RIGHT;
-      execute_motor_instructions = true;
-      break;
-    case 'w':
-      action = GO_FORWARD;
-      execute_motor_instructions = true;
-      break;
-    case 's':
-      action = GO_BACKWARD;
-      execute_motor_instructions = true;
-      break;
-    case 'l':
-      duration += d_step;
-      break;
-    case 'k':
-      duration -= d_step;
-      break;
-    case 'h':
-      pwm += p_step;
-      break;
-    case 'j':
-      pwm -= p_step;
-      break;
-    default:
-      break;
+      c = read_byte();
+      parse(c, &cmd);
+      if (cmd.execute_motor_instructions)
+        motor_drive(pwm, duration, cmd.action);
+      update_sensor();
+      print_sysinfo();
     }
+  }
+}
 
-    if (execute_motor_instructions == true)
-    {
-      motor_drive(pwm, duration, action);
-      execute_motor_instructions = false;
-    }
+void parse(char c, CMD_t *cmd)
+{
+  switch (c)
+  {
+  case 'r':
+    reset();
+    break; // never reach
+  case 'a':
+    cmd->action = GO_LEFT;
+    cmd->execute_motor_instructions = true;
+    break;
+  case 'd':
+    cmd->action = GO_RIGHT;
+    cmd->execute_motor_instructions = true;
+    break;
+  case 'w':
+    cmd->action = GO_FORWARD;
+    cmd->execute_motor_instructions = true;
+    break;
+  case 's':
+    cmd->action = GO_BACKWARD;
+    cmd->execute_motor_instructions = true;
+    break;
+  case 'l':
+    duration += d_step;
+    cmd->execute_motor_instructions = false;
+    break;
+  case 'k':
+    if( (int)(duration-d_step) >= 0)
+      duration -= d_step;
+    cmd->execute_motor_instructions = false;
+    break;
+  case 'o':
+    if((pwm + p_step) <= 100)
+      pwm += p_step;
+    cmd->execute_motor_instructions = false;
+    break;
+  case 'i':
+    if(pwm > 80)
+      pwm -= p_step;
+    cmd->execute_motor_instructions = false;
+    break;
+  default:
+    break;
   }
 }
 
@@ -108,8 +135,6 @@ int main(void)
  */
 void SysTick_Handler(void)
 {
-  __disable_irq();
-
   if (tick == 0xFFFFFFFF)
     tick = 0;
   else
@@ -119,40 +144,25 @@ void SysTick_Handler(void)
   dps = gyro_z();
   orientation += dps / 10;
 #endif
+}
+
+// TODO: update HALL EFFECT
+void update_sensor() {
 
 #ifdef HCSR
-  left = hcsr_distance(0);
-  front = hcsr_distance(1);
-  right = hcsr_distance(2);
+      left = hcsr_distance(0);
+      front = hcsr_distance(1);
+      right = hcsr_distance(2);
 #endif
 
-  __enable_irq();
 }
 
-/**
- * Initilize timer 2 to print out info.
- */
-void info_init(void)
+void print_sysinfo()
 {
 
-  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-
-  NVIC_SetPriority(TIM2_IRQn, 2);
-  NVIC_EnableIRQ(TIM2_IRQn);
-
-  TIM2->PSC = 4000 - 1;
-  TIM2->ARR = 2000;
-  TIM2->DIER |= TIM_DIER_UIE;
-  TIM2->CR1 = TIM_CR1_CEN;
-}
-
-void TIM2_IRQHandler()
-{
-  __disable_irq();
-  // clear
-  usart_write_str("\033[2J");
-  // place cursor at (0,0)
-  usart_write_str("\033[0;0H");
+  usart_write_str(
+      "\033[2J"
+      "\033[0;0H");
   usart_printf("tick: %d\r\n"
                "pwm: %d\r\n"
                "duration: %d\r\n"
@@ -169,8 +179,29 @@ void TIM2_IRQHandler()
                front,
                left,
                right);
+}
+
+/**
+ * Initilize timer 2 to print out info.
+ */
+void timer2_init(void)
+{
+
+  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+  NVIC_SetPriority(TIM2_IRQn, 2);
+  NVIC_EnableIRQ(TIM2_IRQn);
+
+  TIM2->PSC = 4000 - 1;
+  TIM2->ARR = 2000;
+  TIM2->DIER |= TIM_DIER_UIE;
+  TIM2->CR1 = TIM_CR1_CEN;
+}
+
+void TIM2_IRQHandler()
+{
+  print_sysinfo();
   TIM2->SR &= ~TIM_SR_UIF;
-  __enable_irq();
 }
 
 // Just a delay loop
@@ -184,4 +215,9 @@ void debug()
 {
   while (1)
     ;
+}
+
+void reset()
+{
+  NVIC_SystemReset();
 }
