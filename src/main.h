@@ -8,6 +8,7 @@
 #define GYRO
 #define HCSR
 #define MOTOR
+#define HALL
 //#define DEBUG
 
 
@@ -31,6 +32,10 @@
 
 #ifdef MOTOR
 #include "motor.h"
+#endif
+
+#ifdef HALL
+#include "hall.h"
 #endif
 
 #endif

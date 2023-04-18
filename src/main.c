@@ -11,6 +11,9 @@ volatile uint32_t duration = 200; // ms
 volatile uint8_t p_step = 1;
 volatile uint8_t d_step = 100;
 
+extern volatile uint32_t left_rev;
+extern volatile uint32_t right_rev;
+
 typedef struct cmd
 {
   bool execute_motor_instructions;
@@ -47,6 +50,10 @@ int main(void)
   motor_init();
 #endif
 
+#ifdef HALL
+  hall_init();
+#endif
+
 #ifdef DEBUG
   debug();
 #endif
@@ -69,12 +76,19 @@ int main(void)
       c = read_byte();
       parse(c, &cmd);
       if (cmd.execute_motor_instructions)
+      {
+
+        //usart_printf("%s\r\n", "Running. ");
         motor_drive(pwm, duration, cmd.action);
+        //usart_printf("%s\r\n", "Finished.");
+      }
       update_sensor();
       print_sysinfo();
     }
   }
 }
+
+
 
 void parse(char c, CMD_t *cmd)
 {
@@ -119,6 +133,7 @@ void parse(char c, CMD_t *cmd)
     cmd->execute_motor_instructions = false;
     break;
   default:
+    cmd->execute_motor_instructions = false;
     break;
   }
 }
@@ -159,18 +174,19 @@ void update_sensor() {
 
 void print_sysinfo()
 {
-
   usart_write_str(
-      "\033[2J"
-      "\033[0;0H");
+        "\033[2J"
+        "\033[0;0H");
   usart_printf("tick: %d\r\n"
                "pwm: %d\r\n"
                "duration: %d\r\n"
                "dps: %d\r\n"
                "o: %d\r\n"
-               "front: %d\r\n"
-               "left: %d\r\n"
-               "right: %d\r\n",
+               "front d: %d\r\n"
+               "left d: %d\r\n"
+               "right d: %d\r\n"
+               "left rev: %d\r\n"
+               "right rev: %d\r\n",
                tick,
                pwm,
                duration,
@@ -178,7 +194,9 @@ void print_sysinfo()
                orientation,
                front,
                left,
-               right);
+               right,
+               left_rev,
+               right_rev);
 }
 
 /**
