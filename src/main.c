@@ -1,32 +1,28 @@
 #include "main.h"
 
+// System
 volatile uint32_t tick = 0; // 1 tick = 100 ms
 volatile int16_t dps = 0;
 volatile int16_t orientation = 0; // degree
-volatile uint16_t front = 0xFFFF; // cm
-volatile uint16_t left = 0xFFFF;
-volatile uint16_t right = 0xFFFF; 
-volatile uint8_t pwm = 95;
+// Motor
+volatile uint8_t pwm = 100;
 volatile uint32_t duration = 200; // ms
 volatile uint8_t p_step = 1;
-volatile uint8_t d_step = 100;
+volatile uint8_t d_step = 50;
+// Hcsr
+volatile uint16_t front = 0xFFFF; // cm
+volatile uint16_t left = 0xFFFF;
+volatile uint16_t right = 0xFFFF;
 
-extern volatile uint32_t left_rev;
-extern volatile uint32_t right_rev;
+// PI
+extern volatile uint32_t target_distance; // cm
 
-typedef struct cmd
-{
-  bool execute_motor_instructions;
-  Action_t action;
-} CMD_t;
-
-void timer2_init(void);
 void debug(void);
 void delay(int t);
-void reset();
-void print_sysinfo();
-void parse(char, CMD_t *);
-void update_sensor();
+void reset(void);
+void execute(char);
+void update_distance();
+void Run(void);
 
 int main(void)
 {
@@ -63,34 +59,44 @@ int main(void)
       "\033[2J"
       "\033[0;0H"
       "Hello world! \r\n ");
-  char c;
 
-  CMD_t cmd;
-  cmd.action = GO_FORWARD;
-  cmd.execute_motor_instructions = false;
+  char c;
 
   while (1)
   {
     if (data_ready() > 0)
     {
-      c = read_byte();
-      parse(c, &cmd);
-      if (cmd.execute_motor_instructions)
-      {
 
-        //usart_printf("%s\r\n", "Running. ");
-        motor_drive(pwm, duration, cmd.action);
-        //usart_printf("%s\r\n", "Finished.");
-      }
-      update_sensor();
-      print_sysinfo();
+      c = read_byte();
+
+      // clear screen
+      usart_write_str(
+          "\033[2J"
+          "\033[0;0H");
+      usart_write_str("Start\r\n");
+      execute(c);
+      usart_write_str("Finish\r\n");
+      usart_printf("---- Sys ----\r\n"
+                   "tick: %d\r\n"
+                   "---- Motor ----\r\n"
+                   "pwm: %d\r\n"
+                   "duration: %d\r\n"
+                   "---- Gyro ----\r\n"
+                   "angular velo: %d\r\n"
+                   "orientation: %d\r\n"
+                   "----- PI ----\r\n"
+                   "target_distance: %d\r\n",
+                   tick,
+                   pwm,
+                   duration,
+                   dps,
+                   orientation,
+                   target_distance);
     }
   }
 }
 
-
-
-void parse(char c, CMD_t *cmd)
+void execute(char c)
 {
   switch (c)
   {
@@ -98,45 +104,57 @@ void parse(char c, CMD_t *cmd)
     reset();
     break; // never reach
   case 'a':
-    cmd->action = GO_LEFT;
-    cmd->execute_motor_instructions = true;
+    motor_drive(pwm, duration, GO_LEFT);
     break;
   case 'd':
-    cmd->action = GO_RIGHT;
-    cmd->execute_motor_instructions = true;
+    motor_drive(pwm, duration, GO_RIGHT);
     break;
   case 'w':
-    cmd->action = GO_FORWARD;
-    cmd->execute_motor_instructions = true;
+    motor_drive(pwm, duration, GO_FORWARD);
     break;
   case 's':
-    cmd->action = GO_BACKWARD;
-    cmd->execute_motor_instructions = true;
+    motor_drive(pwm, duration, GO_BACKWARD);
     break;
   case 'l':
     duration += d_step;
-    cmd->execute_motor_instructions = false;
     break;
   case 'k':
-    if( (int)(duration-d_step) >= 0)
+    if ((int)(duration - d_step) >= 0)
       duration -= d_step;
-    cmd->execute_motor_instructions = false;
     break;
   case 'o':
-    if((pwm + p_step) <= 100)
+    if ((pwm + p_step) <= 100)
       pwm += p_step;
-    cmd->execute_motor_instructions = false;
     break;
   case 'i':
-    if(pwm > 80)
+    if (pwm > 80)
       pwm -= p_step;
-    cmd->execute_motor_instructions = false;
+    break;
+  case 'h':
+    update_distance();
+    break;
+  case 'g':
+    PI_init();
+    break;
+  case 'v':
+    duration = target_distance * 3000 / 110; 
+    usart_printf("Distance(cm): %d\r\n"
+                 "Duration(ms): %d\r\n", 
+                 target_distance,
+                 duration);
+    motor_drive(pwm, duration, GO_FORWARD);
+    break;
+  case '+':
+    target_distance += 100;
+    break;
+  case '-':
+    target_distance -= 100;
     break;
   default:
-    cmd->execute_motor_instructions = false;
     break;
   }
 }
+
 
 /*
  * System tick happens every 100ms, it will update data from all sensors.
@@ -161,65 +179,22 @@ void SysTick_Handler(void)
 #endif
 }
 
-// TODO: update HALL EFFECT
-void update_sensor() {
-
+void update_distance()
+{
+  // We can disable IRQ because Rover is not moving.
+  __disable_irq();
 #ifdef HCSR
-      left = hcsr_distance(0);
-      front = hcsr_distance(1);
-      right = hcsr_distance(2);
+  left = hcsr_distance(0);
+  front = hcsr_distance(1);
+  right = hcsr_distance(2);
 #endif
+  __enable_irq();
 
-}
-
-void print_sysinfo()
-{
-  usart_write_str(
-        "\033[2J"
-        "\033[0;0H");
-  usart_printf("tick: %d\r\n"
-               "pwm: %d\r\n"
-               "duration: %d\r\n"
-               "dps: %d\r\n"
-               "o: %d\r\n"
-               "front d: %d\r\n"
-               "left d: %d\r\n"
-               "right d: %d\r\n"
-               "left rev: %d\r\n"
-               "right rev: %d\r\n",
-               tick,
-               pwm,
-               duration,
-               dps,
-               orientation,
-               front,
-               left,
-               right,
-               left_rev,
-               right_rev);
-}
-
-/**
- * Initilize timer 2 to print out info.
- */
-void timer2_init(void)
-{
-
-  RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-
-  NVIC_SetPriority(TIM2_IRQn, 2);
-  NVIC_EnableIRQ(TIM2_IRQn);
-
-  TIM2->PSC = 4000 - 1;
-  TIM2->ARR = 2000;
-  TIM2->DIER |= TIM_DIER_UIE;
-  TIM2->CR1 = TIM_CR1_CEN;
-}
-
-void TIM2_IRQHandler()
-{
-  print_sysinfo();
-  TIM2->SR &= ~TIM_SR_UIF;
+  usart_printf("Obstacles:::\r\n" 
+               "F: %d\r\n"
+               "L: %d\r\n"
+               "R: %d\r\n",
+               front, left, right);
 }
 
 // Just a delay loop

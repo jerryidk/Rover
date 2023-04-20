@@ -24,7 +24,6 @@ void motor_right_init();
 void motor_left_pwm(uint8_t, MOTOR_ROT_DIRECTION_t);
 void motor_right_pwm(uint8_t, MOTOR_ROT_DIRECTION_t);
 void motor_drive(uint8_t, uint32_t, Action_t);
-void PI_control(void);
 
 
 #endif

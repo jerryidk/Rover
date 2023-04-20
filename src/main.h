@@ -9,6 +9,7 @@
 #define HCSR
 #define MOTOR
 #define HALL
+#define PID
 //#define DEBUG
 
 
@@ -36,6 +37,10 @@
 
 #ifdef HALL
 #include "hall.h"
+#endif
+
+#ifdef PID
+#include "pid.h"
 #endif
 
 #endif
