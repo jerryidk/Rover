@@ -1,5 +1,5 @@
 #include "hcsr.h"
-uint16_t tmax = 5000; // max time processor should wait on hcsr.
+uint16_t tmax = 7000; // max time processor should wait on hcsr.
 
 void hcsr_init()
 {
@@ -64,6 +64,7 @@ uint16_t hcsr_distance(uint8_t offset)
         // wait up to 5ms.
         if (TIM7->SR & TIM_SR_UIF)
         {
+            // probably nothing
             TIM7->CR1 &= ~TIM_CR1_CEN;
             return 0;
         }
@@ -84,7 +85,7 @@ uint16_t hcsr_distance(uint8_t offset)
 
         if (TIM7->SR & TIM_SR_UIF)
         {
-            t = 0;
+            t = tmax;
             break;
         }
     };

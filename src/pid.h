@@ -7,4 +7,6 @@
 void timer2_init(void);
 int clamp(int, int, int);
 void PI_init(void);
+void PI_finish();
+
 #endif

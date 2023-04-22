@@ -6,7 +6,7 @@ volatile int16_t dps = 0;
 volatile int16_t orientation = 0; // degree
 // Motor
 volatile uint8_t pwm = 100;
-volatile uint32_t duration = 200; // ms
+volatile uint32_t duration = 630; // ms
 volatile uint8_t p_step = 1;
 volatile uint8_t d_step = 50;
 // Hcsr
@@ -17,12 +17,15 @@ volatile uint16_t right = 0xFFFF;
 // PI
 extern volatile uint32_t target_distance; // cm
 
+
+ 
 void debug(void);
 void delay(int t);
 void reset(void);
 void execute(char);
 void update_distance();
-void Run(void);
+void autorun(void);
+
 
 int main(void)
 {
@@ -92,6 +95,7 @@ int main(void)
                    dps,
                    orientation,
                    target_distance);
+      update_distance();
     }
   }
 }
@@ -130,9 +134,6 @@ void execute(char c)
     if (pwm > 80)
       pwm -= p_step;
     break;
-  case 'h':
-    update_distance();
-    break;
   case 'g':
     PI_init();
     break;
@@ -150,9 +151,58 @@ void execute(char c)
   case '-':
     target_distance -= 100;
     break;
+  case 'm':
+    autorun();
+    break;
   default:
     break;
   }
+}
+
+/*
+* Input: Hcsr sensor
+* Output action
+*/
+void autorun(void) 
+{
+
+  const uint32_t threshold = 15;
+  const uint32_t turn = 630;
+  while(1)
+  {
+    update_distance();
+    if(front > threshold)
+    {
+      motor_drive(pwm, 300, GO_FORWARD); 
+      continue;
+    }
+
+    if(front < threshold && left > threshold && right < threshold){
+      motor_drive(pwm, turn, GO_LEFT); 
+      continue;
+    } 
+
+    if(front < threshold && right > threshold && left < threshold){
+      motor_drive(pwm, turn, GO_RIGHT); 
+      continue;
+    }
+
+    if(front < threshold && left > threshold && right > threshold){
+      // if face left
+      if(orientation < 0)
+        motor_drive(pwm, turn, GO_RIGHT); 
+      else 
+        motor_drive(pwm, turn, GO_LEFT); 
+        
+      continue;
+    }
+
+    if(front < threshold && left < threshold && right < threshold){
+      motor_drive(pwm, duration * 2, GO_LEFT); 
+      continue;
+    }
+  }
+
 }
 
 

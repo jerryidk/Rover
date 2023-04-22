@@ -1,7 +1,7 @@
 #include "hall.h"
 
-volatile uint32_t left_rev = 0;
-volatile uint32_t right_rev = 0;
+volatile uint32_t left_cnt = 0;
+volatile uint32_t right_cnt = 0;
 
 void hall_init()
 {
@@ -20,13 +20,13 @@ void hall_init()
 void EXTI4_15_IRQHandler(void)
 {
     if (EXTI->PR & (1 << 14)) {
-       right_rev++;
+       right_cnt++;
        // clear pending by writing 1 to locaiton.
        EXTI->PR |= (1 << 14); 
     }
 
     if (EXTI->PR & (1 << 15)) {
-       left_rev++;
+       left_cnt++;
        EXTI->PR |= (1 << 15); 
     }
 }
