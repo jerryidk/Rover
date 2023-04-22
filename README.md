@@ -1,18 +1,62 @@
-# ECE 6780
+# Rover Doc
 
 ## Overview
 
-Repo for ECE embedded system final project - Rover
+Repo for ECE embedded system final project. An rover developed using STM32 board.
 
-## Group Member  
+### Function
+| Key | Description | 
+| --- | ----------- |
+| w   | Move Forward|
+| a   | Turn Left   |
+| s   | Move Backward|
+| d   | Turn Right |
+| m   | Maza Mode, autononmous driving mode|
+| l   | Increase Duration |
+| k   | Decrease Duration |
+| o   | Increase PWM |
+| i   | Decrease PWM |
+| g   | PID linear control |
+| +   | Increase PID distance |
+| -   | Decrease PID distance |
+
+### Stats
+The rover connects via a remote usart module to receive commands. There will be a print out the system information which includes
+
+| Var | Description | 
+| ----| ------------ |
+| Tick | system event count |
+| DPS  | Angular velocity |
+| Orientation | Rover orientation |
+| PWM         | how much Voltage deliver to the motor |
+| Duration    | how long the motor should stay at given PWM  |
+| Front/Left/Right Distance | Ultrasonic sensor data, how far obstacle are |
+| Error | PI control error |
+| Output | PI control output pwm |
+
+### Remote USART
+
+- [datasheet](https://www.etechnophiles.com/hc-05-pinout-specifications-datasheet/)
+- [connection](https://askubuntu.com/questions/248817/how-to-i-connect-a-raw-serial-terminal-to-a-bluetooth-connection)
+
+Schematic: Select datamode by pull EN low. Rest Pins are self explanatory. 
+Commands to connect (pair the bluetooth first, password 0000 or 1234): 
+
+```
+    sudo rfcomm connect /dev/rfcomm0 <MAC ADDRESS>
+    sudo screen /dev/rfcomm0 9600
+```
+
+### Group Member  
 
 - Jerry Zhang
 - Jared Garey
 - Wilson Martinez
 
+---
+## Notes to Dev 
 
-## Usage
-
+### Basic command
 ```
 make clean 
 make flash  ---- Flash onto connected STM board 
@@ -23,7 +67,7 @@ gdb:        ---- To debug
 --- symbol-files  main.elf
 ```
 
-## Work ethics
+### Work ethics
 
 ```
 Master branch contains ready-to-go production code
@@ -41,37 +85,19 @@ Normal work flow:
 - git push origin master                     ; Production! 
 
 ```
-## Notes
+### Code organization
 
-------- 
-### Remote USART
+The code is organized by functionality and hardware. the file name usually associates with a specific hardware. Ex. hcsr means ultrasonic sensor driver code. Main application for Rover is in main.c as usual. boot.s contains a bootloader put you into main. 
 
-- [datasheet](https://www.etechnophiles.com/hc-05-pinout-specifications-datasheet/)
-- [connection](https://askubuntu.com/questions/248817/how-to-i-connect-a-raw-serial-terminal-to-a-bluetooth-connection)
+---
+## System Design
+ 
+### Schematic
 
-Schematic: Select datamode by pull EN low. Rest Pins are self explanatory. 
-Commands to connect (pair the bluetooth first, password 0000 or 1234): 
-
-```
-    sudo rfcomm connect /dev/rfcomm0 <MAC ADDRESS>
-    sudo screen /dev/rfcomm0 9600
-```
------- 
-
-### Physical Resource allocation 
-
----- 
-Note, PA13, 14,15 should not be used (debugger). 
-Thanks to Wilson: 
-PA2, PA3
-PA6, PA7
-PB0, PB1 
-can't be used due to linear touch sensor. 
-
-There are also some other pins can't be used as output,
+- PA13, 14,15 should not be used (debugger). Thanks to Wilson PA2, PA3, PA6, PA7, PB0, PB1 can't be used due to linear touch sensor. 
+- There are also some other pins can't be used as output,
 so test them before you use them. 
-
-PA Moder <- render your board dead. 
+- DON"T clear entire PA Moder, it will render your board dead. 
 
 | Resource   | Pin  | Mode | Function| 
 | ------     | ---- | ---- | ------- | 
@@ -99,31 +125,11 @@ PA Moder <- render your board dead.
 --- 
 | Interrupt | Description |
 | --------- | ------------|
-| Systick   | read gyro and hcsr | 
-| EXTI      | read encoder | 
+| Systick   | Update gyro  | 
+| EXTI      | Rotational encoder | 
+| TIMER2    | pid control  |
 --- 
 
-### TODO
 
-- Encoder ( pick a pin and hook up EXTI interrupt to detect # rev wheel have taken ) 
-- PID system ( write a PID system to travel certain distance)
-- Finish Motor and build software controller. 
-- Build User interface
 
-### MOTOR DIRECTION
-
-The following is the source of true to control the direction of the Rover.
-Once we have got the information from the ultrasonic sensor it is necessary to apply a threshold to get the data for the source of true.
-The threshold should be define somewhere in between 10 cm (~4 in) to 20 cm (~8 in). Once the threshold is apply we should check a variable 'rover_direction'
-
-| L 	| F 	| R     | Action |
-| ---   | ---   | ---   | -----------|
-| 0	    | 0	    | 0	    | Move Fw |
-| 0	    | 0	    | 1	    | Move Fw |
-| 0	    | 1	    | 0	    | Turn R 90 degrees |
-| 0	    | 1	    | 1	    | Turn L 90 degrees |
-| 1	    | 0	    | 0	    | Move Fw |
-| 1	    | 0	    | 1	    | Move Fw |
-| 1	    | 1	    | 0	    | Turn R 90 degrees |
-| 1	    | 1	    | 1	    | Turn R 180 degrees |
 
