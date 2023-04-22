@@ -98,6 +98,7 @@ The code is organized by functionality and hardware. the file name usually assoc
 - There are also some other pins can't be used as output,
 so test them before you use them. 
 - DON"T clear entire PA Moder, it will render your board dead. 
+- Gyro is internally connected via SPI no needs for jumper. 
 
 | Resource   | Pin  | Mode | Function| 
 | ------     | ---- | ---- | ------- | 
@@ -119,6 +120,8 @@ so test them before you use them.
 | motor2     | PC6  | OUT  | BLK     |
 | motor2     | PA4  | AF4  | PWM | TIM14_CH1  |
 | motor2     | PB8  | AF2  | PWM | TIM16_CH1  |
+| hall effect right| PC14 | IN | EXTI  |
+| hall effect left | PC15 | IN | EXIT  | 
 
 ### System interrupts
 
