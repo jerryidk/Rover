@@ -17,15 +17,16 @@ volatile uint16_t right = 0xFFFF;
 // PI
 extern volatile uint32_t target_distance; // cm
 
+// Hall
+extern volatile uint32_t left_cnt;
+extern volatile uint32_t right_cnt;
 
- 
 void debug(void);
 void delay(int t);
 void reset(void);
 void execute(char);
 void update_distance();
 void autorun(void);
-
 
 int main(void)
 {
@@ -79,6 +80,7 @@ int main(void)
       usart_write_str("Start\r\n");
       execute(c);
       usart_write_str("Finish\r\n");
+      update_distance();
       usart_printf("---- Sys ----\r\n"
                    "tick: %d\r\n"
                    "---- Motor ----\r\n"
@@ -88,14 +90,20 @@ int main(void)
                    "angular velo: %d\r\n"
                    "orientation: %d\r\n"
                    "----- PI ----\r\n"
-                   "target_distance: %d\r\n",
+                   "target_distance: %d\r\n"
+                   "-----HCSR----\r\n"
+                   "F: %d\r\n"
+                   "L: %d\r\n"
+                   "R: %d\r\n",
                    tick,
                    pwm,
                    duration,
                    dps,
                    orientation,
-                   target_distance);
-      update_distance();
+                   target_distance,
+                   front,
+                   left,
+                   right);
     }
   }
 }
@@ -134,16 +142,11 @@ void execute(char c)
     if (pwm > 80)
       pwm -= p_step;
     break;
-  case 'g':
+  case 'p':
     PI_init();
     break;
   case 'v':
-    duration = target_distance * 3000 / 110; 
-    usart_printf("Distance(cm): %d\r\n"
-                 "Duration(ms): %d\r\n", 
-                 target_distance,
-                 duration);
-    motor_drive(pwm, duration, GO_FORWARD);
+    motor_drive(pwm, target_distance * 3000 / 110, GO_FORWARD);
     break;
   case '+':
     target_distance += 100;
@@ -160,51 +163,87 @@ void execute(char c)
 }
 
 /*
-* Input: Hcsr sensor
-* Output action
-*/
-void autorun(void) 
+ * Input: Hcsr sensor
+ * Output action
+ */
+void autorun(void)
 {
 
   const uint32_t threshold = 15;
   const uint32_t turn = 630;
-  while(1)
+  const uint32_t dist = 300;
+
+  uint32_t old_leftcnt = left_cnt;
+  uint32_t old_rightcnt = right_cnt;
+  uint32_t stationary = 0;
+  while (1)
   {
-    update_distance();
-    if(front > threshold)
+
+    if (stationary >= 5)
     {
-      motor_drive(pwm, 300, GO_FORWARD); 
+      usart_printf("Stuck \r\n");
+      break;
+    }
+
+    if (data_ready() > 0)
+    {
+      usart_printf("Stopping \r\n");
+      break;
+    }
+
+    if (left_cnt == old_leftcnt &&
+        right_cnt == old_rightcnt)
+    {
+      stationary++;
+    }
+    else
+    {
+      old_leftcnt = left_cnt;
+      old_rightcnt = right_cnt;
+      stationary = 0;
+    }
+    
+    update_distance();
+
+    if (front > threshold)
+    {
+      motor_drive(pwm, dist, GO_FORWARD);
       continue;
     }
 
-    if(front < threshold && left > threshold && right < threshold){
-      motor_drive(pwm, turn, GO_LEFT); 
-      continue;
-    } 
-
-    if(front < threshold && right > threshold && left < threshold){
-      motor_drive(pwm, turn, GO_RIGHT); 
+    if (front < threshold && left > threshold && right < threshold)
+    {
+      motor_drive(pwm, turn, GO_LEFT);
       continue;
     }
 
-    if(front < threshold && left > threshold && right > threshold){
+    if (front < threshold && right > threshold && left < threshold)
+    {
+      motor_drive(pwm, turn, GO_RIGHT);
+      continue;
+    }
+
+    if (front < threshold && left > threshold && right > threshold)
+    {
       // if face left
-      if(orientation < 0)
-        motor_drive(pwm, turn, GO_RIGHT); 
-      else 
-        motor_drive(pwm, turn, GO_LEFT); 
-        
+      if (orientation < 0)
+        motor_drive(pwm, turn, GO_RIGHT);
+      else
+        motor_drive(pwm, turn, GO_LEFT);
+
       continue;
     }
 
-    if(front < threshold && left < threshold && right < threshold){
-      motor_drive(pwm, duration * 2, GO_LEFT); 
-      continue;
+    if (front < threshold && left < threshold && right < threshold)
+    {
+      motor_drive(pwm, turn * 2, GO_LEFT);
+      usart_printf("Trapped \r\n");
+      return;
     }
   }
 
+  motor_drive(0, 0, GO_FORWARD);
 }
-
 
 /*
  * System tick happens every 100ms, it will update data from all sensors.
@@ -226,6 +265,7 @@ void SysTick_Handler(void)
 #ifdef GYRO
   dps = gyro_z();
   orientation += dps / 10;
+  orientation = orientation % 360;
 #endif
 }
 
@@ -239,12 +279,6 @@ void update_distance()
   right = hcsr_distance(2);
 #endif
   __enable_irq();
-
-  usart_printf("Obstacles:::\r\n" 
-               "F: %d\r\n"
-               "L: %d\r\n"
-               "R: %d\r\n",
-               front, left, right);
 }
 
 // Just a delay loop

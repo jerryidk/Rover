@@ -12,7 +12,6 @@ void hall_init()
   EXTI->IMR  |= (1 << 14) | (1 << 15); 
   EXTI->FTSR |= (1 << 14) | (1 << 15); 
 
-
   NVIC_EnableIRQ(EXTI4_15_IRQn);
   NVIC_SetPriority(EXTI4_15_IRQn, 1);
 }
