@@ -2,7 +2,7 @@
 
 ## Overview
 
-Repo for ECE embedded system final project. An rover developed using STM32 board.
+Repo for ECE embedded system final project. A rover developed using STM32 board. There are 2 purposes for this rover. First, to navigate through a simple obstacle course that the user cannot see, and using the USART interface with 9600 baud rate for control and status to the user. Second, to move a target distance as precisely as possible. We are using 3 ultrasonic sensors facing right, left, and forwards to help with status in navigating without seeing the rover. There is a bluetooth to USART circuit card to control the rover without a corded connection. There are 2 motors and wheels. The motors are controlled by a circuit card designed to handle the amount of voltage and current, and to encode the direction of the wheel turning. There is a basic hall sensor circuit to measure how much the wheels have spun. Finally, there are 3 power supplies, one for the microcontroller (STM32) and one for each motor.
 
 ### Function
 | Key | Description | 
@@ -98,7 +98,7 @@ The code is organized by functionality and hardware. the file name usually assoc
 - There are also some other pins can't be used as output,
 so test them before you use them. 
 - DON"T clear entire PA Moder, it will render your board dead. 
-- Gyro is internally connected via SPI no needs for jumper. 
+- Gyro is internally connected via SPI, so no need for jumper. 
 
 | Resource   | Pin  | Mode | Function| 
 | ------     | ---- | ---- | ------- | 
