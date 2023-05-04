@@ -133,6 +133,15 @@ so test them before you use them.
 | TIMER2    | pid control  |
 --- 
 
+## Assembly and Final Result Pictures
 
-
-
+![IMG_20230413_185615](https://user-images.githubusercontent.com/125758000/236109052-84a09bcd-6a90-44c2-b7cc-960923710031.jpg)
+![IMG_20230413_185640](https://user-images.githubusercontent.com/125758000/236109066-fdfb0caf-4926-49cc-bd53-4eabf03e9c62.jpg)
+![IMG_20230413_185736](https://user-images.githubusercontent.com/125758000/236109144-be242916-f129-4c1d-a15a-f2e66214e66b.jpg)
+![IMG_20230413_190043](https://user-images.githubusercontent.com/125758000/236109203-402537bb-10a7-4ad8-a8ba-dbddf2c5284a.jpg)
+![IMG_20230413_190109](https://user-images.githubusercontent.com/125758000/236109231-9d24bb78-aff9-4ff0-9b0e-c90f6b44b470.jpg)
+![IMG_20230414_111548](https://user-images.githubusercontent.com/125758000/236109237-4c8cf816-fc83-4c19-9438-5ec14586fade.jpg)
+![IMG_20230414_111605](https://user-images.githubusercontent.com/125758000/236109249-f07474d0-7f50-425a-9125-c04f3a7cbb44.jpg)
+![IMG_20230414_111608](https://user-images.githubusercontent.com/125758000/236109281-7ba2f13d-4317-4986-9d15-98cc633e022c.jpg)
+![IMG_20230414_111857](https://user-images.githubusercontent.com/125758000/236109304-5cd10b3a-ff1e-4d9a-a90d-2f688b1b4b0d.jpg)
+![IMG_20230414_112053](https://user-images.githubusercontent.com/125758000/236109327-77ceb03f-fd31-415e-ac58-12cc4e250cdc.jpg)
